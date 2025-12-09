@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo: Autenticación - Kong</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .success-badge {
+            display: inline-block;
+            background: #10b981;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: #333;
+        }
+
+        .demo-section h2 {
+            color: #ff6b6b;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #ff6b6b;
+            padding-bottom: 0.5rem;
+        }
+
+        .plugin-visual {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 2rem;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .plugin-badge {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .test-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .btn-test {
+            padding: 1.5rem;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-without-auth {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 3px solid #dc2626;
+        }
+
+        .btn-with-auth {
+            background: #d1fae5;
+            color: #059669;
+            border: 3px solid #059669;
+        }
+
+        .btn-test:hover {
+            transform: scale(1.05);
+        }
+
+        .result-area {
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-top: 1rem;
+            min-height: 120px;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-wrapper label {
+            color: #0c4a6e;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-wrapper input {
+            padding: 0.75rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .shield {
+            font-size: 8rem;
+            animation: shield-pulse 2s infinite;
+        }
+
+        @keyframes shield-pulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(255, 107, 107, 0.5)); }
+            50% { transform: scale(1.1); filter: drop-shadow(0 0 40px rgba(255, 107, 107, 0.8)); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="success-badge">¡EJERCICIO COMPLETADO!</div>
+            <h1>🔐 Plugin Key-Auth</h1>
+            <p style="font-size: 1.25rem; margin-top: 1rem; opacity: 0.9;">
+                Has protegido el microservicio de división con el plugin de Kong
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h2>¿Qué acabas de hacer?</h2>
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+                Has instalado el <strong>plugin Key-Auth</strong> en Kong, que valida automáticamente
+                las API Keys en cada petición al microservicio de división. Solo usuarios con credenciales válidas pueden acceder.
+            </p>
+
+            <div class="plugin-visual">
+                <div class="shield">🛡️</div>
+                <h3 style="font-size: 1.8rem; margin: 1rem 0;">Plugin Activado</h3>
+                <div class="plugin-badge">key-auth</div>
+                <p style="margin-top: 1rem; opacity: 0.9;">
+                    Toda petición sin API Key válida será rechazada con HTTP 401
+                </p>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Prueba Interactiva - División Protegida</h2>
+            <p style="color: #64748b; margin-bottom: 1.5rem; font-size: 1.1rem;">
+                El microservicio de división está protegido. Compara el comportamiento con y sin API Key:
+            </p>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <label>Dividendo (A):</label>
+                    <input type="number" id="numA" value="100" />
+                </div>
+                <div class="input-wrapper">
+                    <label>Divisor (B):</label>
+                    <input type="number" id="numB" value="5" />
+                </div>
+            </div>
+
+            <div class="test-buttons">
+                <div>
+                    <button class="btn-test btn-without-auth" onclick="testWithoutAuth()">
+                        ❌ Sin API Key
+                    </button>
+                    <div class="result-area" id="result-without"></div>
+                </div>
+                <div>
+                    <button class="btn-test btn-with-auth" onclick="testWithAuth()">
+                        ✅ Con API Key
+                    </button>
+                    <div class="result-area" id="result-with"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Ventajas del Sistema de Plugins</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+                <div style="background: #dbeafe; padding: 1.5rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🧩</div>
+                    <h4 style="color: #0c4a6e;">Modular</h4>
+                    <p style="color: #075985; margin-top: 0.5rem;">Activa solo lo que necesitas</p>
+                </div>
+                <div style="background: #d1fae5; padding: 1.5rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">⚡</div>
+                    <h4 style="color: #065f46;">Sin Código</h4>
+                    <p style="color: #047857; margin-top: 0.5rem;">No necesitas modificar tu microservicio</p>
+                </div>
+                <div style="background: #fef3c7; padding: 1.5rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔄</div>
+                    <h4 style="color: #92400e;">Reutilizable</h4>
+                    <p style="color: #a16207; margin-top: 0.5rem;">Aplica a múltiples Services</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="../index.html" style="background: #10b981; color: white; padding: 1rem 2rem; text-decoration: none; border-radius: 10px; display: inline-block;">
+                ⬅️ Volver al Panel Principal
+            </a>
+        </div>
+    </div>
+
+    <script>
+        async function testWithoutAuth() {
+            const resultDiv = document.getElementById('result-without');
+            const numA = document.getElementById('numA').value;
+            const numB = document.getElementById('numB').value;
+
+            resultDiv.innerHTML = '<p style="color: #f59e0b; text-align: center;">⏳ Enviando sin API Key...</p>';
+
+            try {
+                const response = await fetch(`http://localhost:8000/calc/divide?a=${numA}&b=${numB}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                resultDiv.innerHTML = `
+                    <div style="color: #dc2626; font-size: 1.3rem; margin-bottom: 1rem; text-align: center;">
+                        🚫 Acceso Denegado
+                    </div>
+                    <div style="color: #991b1b; text-align: center;">
+                        <strong>Estado:</strong> ${response.status}<br>
+                        Kong bloqueó la petición
+                    </div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #fecaca; color: #7f1d1d; border-radius: 8px; text-align: center;">
+                        ✋ El plugin Key-Auth requiere una API Key válida
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div style="color: #dc2626; text-align: center;">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testWithAuth() {
+            const resultDiv = document.getElementById('result-with');
+            const numA = document.getElementById('numA').value;
+            const numB = document.getElementById('numB').value;
+
+            resultDiv.innerHTML = '<p style="color: #f59e0b; text-align: center;">⏳ Enviando con API Key...</p>';
+
+            try {
+                const response = await fetch(`http://localhost:8000/calc/divide?a=${numA}&b=${numB}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': 'calc-secret-key-12345'
+                    }
+                });
+
+                const data = await response.json();
+
+                resultDiv.innerHTML = `
+                    <div style="color: #10b981; font-size: 1.3rem; margin-bottom: 1rem; text-align: center;">
+                        ✅ ¡Autenticado!
+                    </div>
+                    <div style="color: #059669; text-align: center; margin-bottom: 1rem;">
+                        <strong>Estado:</strong> ${response.status}<br>
+                        API Key: calc-secret-key-12345 ✓
+                    </div>
+                    <div style="background: #e0e7ff; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <div style="font-size: 2rem; color: #667eea; text-align: center; margin-bottom: 0.5rem;">
+                            ${numA} ÷ ${numB} = ${data.resultado}
+                        </div>
+                    </div>
+                    <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 10px; font-size: 0.85rem; max-height: 150px; overflow-y: auto;">
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #d1fae5; color: #065f46; border-radius: 8px; text-align: center;">
+                        🎉 Kong validó la API Key y permitió el acceso
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div style="color: #dc2626; text-align: center;">Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

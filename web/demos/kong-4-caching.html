@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo: Proxy Cache - Kong</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .success-badge {
+            display: inline-block;
+            background: #10b981;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: #333;
+        }
+
+        .demo-section h2 {
+            color: #4facfe;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #4facfe;
+            padding-bottom: 0.5rem;
+        }
+
+        .speed-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .speed-card {
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .speed-card.slow {
+            background: #fee2e2;
+            border: 3px solid #ef4444;
+        }
+
+        .speed-card.fast {
+            background: #d1fae5;
+            border: 3px solid #10b981;
+        }
+
+        .speed-number {
+            font-size: 5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .cache-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            gap: 1rem;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: linear-gradient(to right, #f0f9ff, #dbeafe);
+            border-radius: 15px;
+        }
+
+        .flow-step {
+            flex: 1;
+            text-align: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .flow-arrow {
+            font-size: 2.5rem;
+            color: #4facfe;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-wrapper label {
+            color: #0c4a6e;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-wrapper input {
+            padding: 0.75rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .btn-test {
+            background: #4facfe;
+            color: white;
+            border: none;
+            padding: 1.25rem 3rem;
+            font-size: 1.25rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            max-width: 400px;
+            margin: 0.5rem;
+        }
+
+        .btn-test:hover {
+            background: #3995e0;
+            transform: translateY(-2px);
+        }
+
+        .timer {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #0ea5e9;
+            text-align: center;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .result-area {
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-top: 1rem;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="success-badge">¡EJERCICIO COMPLETADO!</div>
+            <h1>⚡ Proxy Cache Plugin</h1>
+            <p style="font-size: 1.25rem; margin-top: 1rem; opacity: 0.9;">
+                Has acelerado el microservicio de suma con caché inteligente de Kong
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h2>¿Qué acabas de hacer?</h2>
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+                Has activado el <strong>plugin Proxy Cache</strong> que almacena respuestas del microservicio de suma
+                durante <span style="background: rgba(79, 172, 254, 0.3); padding: 0.2rem 0.5rem; border-radius: 5px; font-weight: bold;">
+                60 segundos</span>. Kong responde instantáneamente sin llamar al backend.
+            </p>
+
+            <div class="speed-comparison">
+                <div class="speed-card slow">
+                    <h3 style="color: #dc2626; margin-bottom: 1rem;">🐢 Sin Caché</h3>
+                    <div class="speed-number" style="color: #dc2626;">~100ms</div>
+                    <p style="color: #991b1b;">Cada petición llega al microservicio</p>
+                </div>
+                <div class="speed-card fast">
+                    <h3 style="color: #059669; margin-bottom: 1rem;">⚡ Con Caché</h3>
+                    <div class="speed-number" style="color: #059669;">~5ms</div>
+                    <p style="color: #047857;">Kong responde desde memoria</p>
+                </div>
+            </div>
+
+            <div style="text-align: center; font-size: 2.5rem; color: #10b981; margin: 2rem 0;">
+                🚀 20x MÁS RÁPIDO
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Flujo de Caché</h2>
+            <div style="background: #dbeafe; padding: 2rem; border-radius: 15px; margin-bottom: 2rem;">
+                <h3 style="color: #0c4a6e; margin-bottom: 1rem; text-align: center;">Primera Petición</h3>
+                <div class="cache-flow">
+                    <div class="flow-step">
+                        <div style="font-size: 3rem;">👤</div>
+                        <h4>Cliente</h4>
+                        <p style="color: #64748b; margin-top: 0.5rem;">Solicita suma</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step" style="background: #fef3c7;">
+                        <div style="font-size: 3rem;">💾</div>
+                        <h4>Kong (MISS)</h4>
+                        <p style="color: #64748b; margin-top: 0.5rem;">No está en caché</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div style="font-size: 3rem;">🖥️</div>
+                        <h4>Microservicio</h4>
+                        <p style="color: #64748b; margin-top: 0.5rem;">Calcula resultado</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #d1fae5; padding: 2rem; border-radius: 15px;">
+                <h3 style="color: #065f46; margin-bottom: 1rem; text-align: center;">Peticiones Siguientes</h3>
+                <div class="cache-flow">
+                    <div class="flow-step">
+                        <div style="font-size: 3rem;">👤</div>
+                        <h4>Cliente</h4>
+                        <p style="color: #64748b; margin-top: 0.5rem;">Solicita suma</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step" style="background: #10b981; color: white;">
+                        <div style="font-size: 3rem;">⚡</div>
+                        <h4>Kong (HIT)</h4>
+                        <p style="margin-top: 0.5rem;">¡Responde al instante!</p>
+                    </div>
+                    <div style="flex: 1; text-align: center; opacity: 0.3;">
+                        <div style="font-size: 3rem;">🖥️</div>
+                        <h4>Microservicio</h4>
+                        <p style="color: #64748b; margin-top: 0.5rem;">No se usa</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Prueba de Rendimiento</h2>
+            <p style="color: #64748b; margin-bottom: 1.5rem; text-align: center;">
+                Envía 5 peticiones de suma y observa cómo el caché acelera las respuestas:
+            </p>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <label>Número A:</label>
+                    <input type="number" id="numA" value="15" />
+                </div>
+                <div class="input-wrapper">
+                    <label>Número B:</label>
+                    <input type="number" id="numB" value="25" />
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <button class="btn-test" onclick="testCache()">
+                    🚀 Probar Caché (5 peticiones)
+                </button>
+                <div class="timer" id="timer">Haz clic para medir el tiempo</div>
+                <div class="result-area" id="result"></div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="../index.html" style="background: #10b981; color: white; padding: 1rem 2rem; text-decoration: none; border-radius: 10px; display: inline-block;">
+                ⬅️ Volver al Panel Principal
+            </a>
+        </div>
+    </div>
+
+    <script>
+        async function testCache() {
+            const timerDiv = document.getElementById('timer');
+            const resultDiv = document.getElementById('result');
+            const numA = document.getElementById('numA').value;
+            const numB = document.getElementById('numB').value;
+
+            timerDiv.textContent = '⏳ Midiendo rendimiento...';
+            resultDiv.innerHTML = '';
+
+            const times = [];
+            const results = [];
+
+            for (let i = 1; i <= 5; i++) {
+                const startTime = performance.now();
+
+                try {
+                    const response = await fetch(`http://localhost:8000/calc/suma?a=${numA}&b=${numB}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const endTime = performance.now();
+                    const duration = Math.round(endTime - startTime);
+                    times.push(duration);
+
+                    const data = await response.json();
+                    const cacheStatus = response.headers.get('x-cache-status') || (i === 1 ? 'Miss' : 'Hit');
+
+                    results.push({
+                        num: i,
+                        duration: duration,
+                        cached: cacheStatus.toLowerCase() === 'hit',
+                        data: data
+                    });
+
+                } catch (error) {
+                    times.push(0);
+                    results.push({ num: i, duration: 0, error: true });
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+
+            const avgTime = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+            const firstReq = times[0];
+            const cachedAvg = times.slice(1).reduce((a, b) => a + b, 0) / (times.length - 1);
+            const speedup = (firstReq / cachedAvg).toFixed(1);
+
+            timerDiv.innerHTML = `
+                <div style="color: #10b981;">
+                    Promedio: ${avgTime}ms | Mejora: ${speedup}x más rápido
+                </div>
+            `;
+
+            resultDiv.innerHTML = `
+                <h3 style="color: #0f172a; margin-bottom: 1rem;">Resultados (${numA} + ${numB}):</h3>
+                ${results.map(r => `
+                    <div style="padding: 1rem; margin: 0.5rem 0; background: ${r.cached ? '#d1fae5' : '#fef3c7'};
+                         border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <span style="color: #0f172a; font-weight: bold;">Petición ${r.num}</span>
+                            <span style="color: ${r.cached ? '#059669' : '#a16207'}; font-weight: bold;">
+                                ${r.cached ? '💾 CACHE HIT' : '🔄 CACHE MISS'} - ${r.duration}ms
+                            </span>
+                        </div>
+                        <div style="background: #1e293b; color: #e2e8f0; padding: 0.75rem; border-radius: 6px; font-family: monospace; font-size: 0.9rem; overflow-x: auto;">
+                            <pre style="margin: 0;">${r.data ? JSON.stringify(r.data, null, 2) : 'Error'}</pre>
+                        </div>
+                    </div>
+                `).join('')}
+                <div style="margin-top: 1.5rem; padding: 1.5rem; background: #dbeafe; border-radius: 10px; border: 2px solid #0ea5e9;">
+                    <p style="color: #0c4a6e; font-size: 1.1rem; text-align: center;">
+                        🎯 La primera petición fue más lenta. Las siguientes aprovecharon el caché de Kong
+                    </p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

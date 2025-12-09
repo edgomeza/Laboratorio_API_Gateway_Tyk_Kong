@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo: Logging Detallado - Tyk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .success-badge {
+            display: inline-block;
+            background: #10b981;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: #333;
+        }
+
+        .demo-section h2 {
+            color: #0284c7;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #0284c7;
+            padding-bottom: 0.5rem;
+        }
+
+        .highlight {
+            background: rgba(14, 165, 233, 0.2);
+            padding: 0.2rem 0.5rem;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #1e40af;
+        }
+
+        .interactive-demo {
+            background: #e0f2fe;
+            border: 2px solid #0ea5e9;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-wrapper label {
+            color: #0c4a6e;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-wrapper input {
+            padding: 0.75rem;
+            border: 2px solid #bae6fd;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .btn-test {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-test:hover {
+            background: #0284c7;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        .result-area {
+            padding: 1.5rem;
+            background: white;
+            border-radius: 10px;
+            min-height: 100px;
+            border: 2px dashed #7dd3fc;
+            margin-top: 1.5rem;
+        }
+
+        .log-mock {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            margin: 1.5rem 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-field {
+            margin: 0.5rem 0;
+            padding: 0.3rem;
+        }
+
+        .log-key {
+            color: #7dd3fc;
+            font-weight: bold;
+        }
+
+        .log-value {
+            color: #10b981;
+        }
+
+        .log-highlight {
+            background: rgba(14, 165, 233, 0.2);
+            border-radius: 3px;
+            padding: 0.2rem 0.4rem;
+        }
+
+        .btn-home {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 2rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #bae6fd, #7dd3fc);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .warning-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="success-badge">¡EJERCICIO COMPLETADO!</div>
+            <h1>📝 Logging Detallado con Tyk</h1>
+            <p style="font-size: 1.25rem; margin-top: 1rem; opacity: 0.9;">
+                Has activado detailed recording para el microservicio de resta
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h2>¿Qué acabas de hacer?</h2>
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+                Has configurado <span class="highlight">Detailed Recording</span> en Tyk para capturar información completa
+                de cada petición al microservicio de resta. Esto es esencial para debugging, auditoría, análisis de rendimiento
+                y monitoreo de seguridad.
+            </p>
+
+            <div class="info-box">
+                <strong>⚙️ Información capturada en logs:</strong><br>
+                • Headers de request y response<br>
+                • Query parameters y request body<br>
+                • Response body completo<br>
+                • Timestamps y duración de la petición<br>
+                • IP del cliente y ruta accedida<br>
+                • Información de sesión y contexto
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ Advertencia de seguridad:</strong> El detailed recording captura TODA la información incluyendo
+                datos sensibles, tokens de autenticación y información personal. Úsalo solo en endpoints que lo necesiten
+                y protege los archivos de log adecuadamente.
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Ejemplo de Log Capturado</h2>
+            <p style="color: #64748b; margin-bottom: 1rem;">
+                Así se vería un log de una petición al microservicio de resta:
+            </p>
+            <div class="log-mock">
+                <div class="log-field"><span class="log-key">"timestamp"</span>: <span class="log-value">"2025-12-04T10:30:45Z"</span>,</div>
+                <div class="log-field"><span class="log-key">"method"</span>: <span class="log-value">"GET"</span>,</div>
+                <div class="log-field"><span class="log-key">"path"</span>: <span class="log-value">"/logged/resta"</span>,</div>
+                <div class="log-field"><span class="log-key">"raw_path"</span>: <span class="log-highlight">"/logged/resta?a=100&b=35"</span>,</div>
+                <div class="log-field"><span class="log-key">"request_headers"</span>: {</div>
+                <div class="log-field" style="margin-left: 2rem;"><span class="log-key">"Content-Type"</span>: <span class="log-value">"application/json"</span>,</div>
+                <div class="log-field" style="margin-left: 2rem;"><span class="log-key">"User-Agent"</span>: <span class="log-value">"Mozilla/5.0"</span></div>
+                <div class="log-field">},</div>
+                <div class="log-field"><span class="log-key">"response_headers"</span>: {</div>
+                <div class="log-field" style="margin-left: 2rem;"><span class="log-key">"Content-Type"</span>: <span class="log-value">"application/json"</span>,</div>
+                <div class="log-field" style="margin-left: 2rem;"><span class="log-key">"X-Gateway"</span>: <span class="log-value">"tyk"</span></div>
+                <div class="log-field">},</div>
+                <div class="log-field"><span class="log-key">"response_code"</span>: <span class="log-highlight">200</span>,</div>
+                <div class="log-field"><span class="log-key">"response_time_ms"</span>: <span class="log-highlight">45</span>,</div>
+                <div class="log-field"><span class="log-key">"client_ip"</span>: <span class="log-value">"172.18.0.1"</span>,</div>
+                <div class="log-field"><span class="log-key">"api_id"</span>: <span class="log-value">"calc-logged"</span>,</div>
+                <div class="log-field"><span class="log-key">"response_body"</span>: <span class="log-highlight">"{\"resultado\":65.0,\"mensaje\":\"Resta realizada correctamente\",\"estado\":\"OK\"}"</span></div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Prueba el Logging en Vivo</h2>
+            <div class="interactive-demo">
+                <h3 style="color: #0284c7; margin-bottom: 1.5rem;">Realiza una resta y observa el logging</h3>
+                <p style="color: #0c4a6e; margin-bottom: 1.5rem;">
+                    Los detalles completos se guardarán en los logs de Docker. Usa <code style="background: white; padding: 0.2rem 0.5rem; border-radius: 3px;">docker logs tyk-gateway</code> para verlos.
+                </p>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <label>Minuendo (A):</label>
+                        <input type="number" id="numA" value="100" />
+                    </div>
+                    <div class="input-wrapper">
+                        <label>Sustraendo (B):</label>
+                        <input type="number" id="numB" value="35" />
+                    </div>
+                </div>
+
+                <button class="btn-test" onclick="testLogging()">
+                    📝 Calcular Resta y Generar Log
+                </button>
+
+                <div class="result-area" id="result">
+                    <p style="color: #94a3b8; text-align: center; padding: 2rem;">
+                        Haz clic en el botón para realizar una resta con logging detallado
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Casos de Uso del Detailed Logging</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🐛</div>
+                    <h4 style="color: #075985; margin-bottom: 0.5rem;">Debugging</h4>
+                    <p style="color: #0c4a6e; font-size: 0.95rem;">Investigar errores intermitentes y reproducir problemas</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📋</div>
+                    <h4 style="color: #075985; margin-bottom: 0.5rem;">Auditoría</h4>
+                    <p style="color: #0c4a6e; font-size: 0.95rem;">Cumplir regulaciones GDPR, SOX, HIPAA con trazabilidad completa</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h4 style="color: #075985; margin-bottom: 0.5rem;">Rendimiento</h4>
+                    <p style="color: #0c4a6e; font-size: 0.95rem;">Identificar endpoints lentos y analizar tiempos de respuesta</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h4 style="color: #075985; margin-bottom: 0.5rem;">Seguridad</h4>
+                    <p style="color: #0c4a6e; font-size: 0.95rem;">Detectar intentos de acceso no autorizado y patrones de ataque</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="../index.html" class="btn-home">⬅️ Volver al Panel Principal</a>
+        </div>
+    </div>
+
+    <script>
+        async function testLogging() {
+            const resultDiv = document.getElementById('result');
+            const numA = document.getElementById('numA').value;
+            const numB = document.getElementById('numB').value;
+
+            resultDiv.innerHTML = '<p style="color: #f59e0b; text-align: center; padding: 2rem;">⏳ Realizando petición con logging...</p>';
+
+            const startTime = Date.now();
+            const timestamp = new Date().toISOString();
+
+            try {
+                const response = await fetch(`http://localhost:8080/logged/resta?a=${numA}&b=${numB}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'CalculadoraWeb/1.0'
+                    }
+                });
+
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                const data = await response.json();
+
+                // Recopilar toda la información similar a como aparece en los logs
+                const logInfo = {
+                    timestamp: timestamp,
+                    method: 'GET',
+                    path: '/logged/resta',
+                    raw_path: `/logged/resta?a=${numA}&b=${numB}`,
+                    request_headers: {
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'CalculadoraWeb/1.0',
+                        'Accept': '*/*'
+                    },
+                    response_headers: {
+                        'Content-Type': response.headers.get('Content-Type') || 'application/json',
+                        'X-Gateway': 'tyk'
+                    },
+                    response_code: response.status,
+                    response_time_ms: duration,
+                    client_ip: 'browser-origin',
+                    api_id: 'calc-logged',
+                    request_body: '',
+                    response_body: JSON.stringify(data)
+                };
+
+                resultDiv.innerHTML = `
+                    <div style="color: #0ea5e9; font-size: 1.5rem; margin-bottom: 1rem;">
+                        ✅ ¡Operación completada con logging detallado!
+                    </div>
+                    <div style="background: #dbeafe; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <div style="font-size: 2rem; color: #0c4a6e; text-align: center;">
+                            ${numA} - ${numB} = ${data.resultado}
+                        </div>
+                    </div>
+
+                    <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>📝 Información Completa Capturada (igual que en logs de Tyk):</strong>
+                        <pre style="margin-top: 0.5rem; overflow-x: auto; font-size: 0.85rem;">${JSON.stringify(logInfo, null, 2)}</pre>
+                    </div>
+
+                    <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>🔍 Desglose de la Información:</strong><br><br>
+                        <div class="log-field"><span class="log-key">timestamp:</span> <span class="log-value">"${logInfo.timestamp}"</span></div>
+                        <div class="log-field"><span class="log-key">method:</span> <span class="log-value">"${logInfo.method}"</span></div>
+                        <div class="log-field"><span class="log-key">path:</span> <span class="log-value">"${logInfo.path}"</span></div>
+                        <div class="log-field"><span class="log-key">raw_path:</span> <span class="log-highlight">"${logInfo.raw_path}"</span></div>
+                        <div class="log-field"><span class="log-key">response_code:</span> <span class="log-highlight">${logInfo.response_code}</span></div>
+                        <div class="log-field"><span class="log-key">response_time_ms:</span> <span class="log-highlight">${logInfo.response_time_ms}</span></div>
+                        <div class="log-field"><span class="log-key">api_id:</span> <span class="log-value">"${logInfo.api_id}"</span></div>
+                    </div>
+
+                    <div style="background: #dbeafe; padding: 1rem; border-radius: 10px; border: 2px solid #0ea5e9;">
+                        <p style="color: #0c4a6e; font-size: 1.1rem;">
+                            📝 <strong>Log capturado:</strong> Esta petición ha sido registrada con todos sus detalles en los logs de Tyk.
+                        </p>
+                        <p style="color: #0c4a6e; margin-top: 0.5rem; font-size: 0.95rem;">
+                            La información mostrada arriba representa lo que se guarda en los logs de Tyk. Para ver los logs reales ejecuta:<br>
+                            <code style="background: #1e293b; color: #10b981; padding: 0.3rem 0.6rem; border-radius: 4px; display: inline-block; margin-top: 0.5rem;">docker logs tyk-gateway --tail 50 | grep "calc-logged"</code>
+                        </p>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div style="color: #ef4444; font-size: 1.25rem; margin-bottom: 1rem;">
+                        ❌ Error en la petición
+                    </div>
+                    <div style="color: #64748b;">
+                        ${error.message}
+                    </div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #fee2e2; color: #991b1b; border-radius: 8px;">
+                        ⚠️ Asegúrate de que Tyk y el microservicio de resta estén corriendo
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

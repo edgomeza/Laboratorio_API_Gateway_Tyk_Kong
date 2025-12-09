@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo: Autenticación - Tyk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .success-badge {
+            display: inline-block;
+            background: #10b981;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: #333;
+        }
+
+        .demo-section h2 {
+            color: #f5576c;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #f5576c;
+            padding-bottom: 0.5rem;
+        }
+
+        .security-visual {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            gap: 2rem;
+            padding: 2rem;
+            background: linear-gradient(to right, #fef3c7, #fecaca);
+            border-radius: 15px;
+            margin: 2rem 0;
+        }
+
+        .shield-container {
+            text-align: center;
+            flex: 1;
+        }
+
+        .shield {
+            font-size: 8rem;
+            animation: shield-glow 2s infinite;
+        }
+
+        @keyframes shield-glow {
+            0%, 100% { filter: drop-shadow(0 0 10px rgba(245, 87, 108, 0.5)); }
+            50% { filter: drop-shadow(0 0 30px rgba(245, 87, 108, 0.8)); }
+        }
+
+        .auth-flow {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .auth-step {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 3px solid #e0e7ff;
+            position: relative;
+        }
+
+        .auth-step::after {
+            content: '→';
+            position: absolute;
+            right: -2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            color: #f5576c;
+        }
+
+        .auth-step:last-child::after {
+            display: none;
+        }
+
+        .step-number {
+            background: #f5576c;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 0 auto 1rem;
+        }
+
+        .test-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .btn-test {
+            padding: 1.5rem;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-without-auth {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 3px solid #dc2626;
+        }
+
+        .btn-with-auth {
+            background: #d1fae5;
+            color: #059669;
+            border: 3px solid #059669;
+        }
+
+        .btn-test:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .result-area {
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 120px;
+            margin-top: 1rem;
+            border: 2px dashed #cbd5e1;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-wrapper label {
+            color: #0c4a6e;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-wrapper input {
+            padding: 0.75rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="success-badge">¡EJERCICIO COMPLETADO!</div>
+            <h1>🔐 Autenticación con API Keys</h1>
+            <p style="font-size: 1.25rem; margin-top: 1rem; opacity: 0.9;">
+                Has protegido tu API de división con autenticación
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h2>¿Qué acabas de hacer?</h2>
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+                Has implementado <span style="background: rgba(245, 87, 108, 0.3); padding: 0.2rem 0.5rem; border-radius: 5px; font-weight: bold;">autenticación mediante API Keys</span>, bloqueando el acceso
+                no autorizado al microservicio de división. Solo los clientes con una key válida pueden realizar operaciones.
+            </p>
+
+            <div class="security-visual">
+                <div class="shield-container">
+                    <div class="shield">🛡️</div>
+                    <h3 style="color: #991b1b; margin-top: 1rem;">Acceso Protegido</h3>
+                    <p style="color: #7f1d1d;">Se requiere API Key válida</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Flujo de Autenticación</h2>
+            <div class="auth-flow">
+                <div class="auth-step">
+                    <div class="step-number">1</div>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📨</div>
+                    <h4>Petición Recibida</h4>
+                    <p style="margin-top: 0.5rem; color: #64748b;">Cliente envía request</p>
+                </div>
+                <div class="auth-step">
+                    <div class="step-number">2</div>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+                    <h4>Validación</h4>
+                    <p style="margin-top: 0.5rem; color: #64748b;">Tyk verifica API Key</p>
+                </div>
+                <div class="auth-step">
+                    <div class="step-number">3</div>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">✅</div>
+                    <h4>Autorizado</h4>
+                    <p style="margin-top: 0.5rem; color: #64748b;">Acceso permitido</p>
+                </div>
+            </div>
+
+            <div style="background: #dbeafe; padding: 1.5rem; border-radius: 10px; margin-top: 2rem;">
+                <p style="color: #1e40af; font-size: 1.1rem;">
+                    <strong>🔑 API Key configurada:</strong> <code style="background: #1e293b; color: #fbbf24; padding: 0.3rem 0.8rem; border-radius: 5px;">test-key-123</code>
+                </p>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Prueba Interactiva - División Protegida</h2>
+            <p style="color: #64748b; margin-bottom: 1.5rem; font-size: 1.1rem;">
+                El microservicio de división está protegido. Compara qué pasa con y sin autenticación:
+            </p>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <label>Dividendo (A):</label>
+                    <input type="number" id="numA" value="100" />
+                </div>
+                <div class="input-wrapper">
+                    <label>Divisor (B):</label>
+                    <input type="number" id="numB" value="5" />
+                </div>
+            </div>
+
+            <div class="test-buttons">
+                <div>
+                    <button class="btn-test btn-without-auth" onclick="testWithoutAuth()">
+                        ❌ Sin API Key
+                    </button>
+                    <div class="result-area" id="result-without-auth">
+                        <p style="color: #94a3b8; text-align: center;">Prueba sin autenticación</p>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn-test btn-with-auth" onclick="testWithAuth()">
+                        ✅ Con API Key
+                    </button>
+                    <div class="result-area" id="result-with-auth">
+                        <p style="color: #94a3b8; text-align: center;">Prueba con autenticación</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; padding: 1.5rem; background: #fef3c7; border-radius: 10px; border: 2px solid #f59e0b;">
+                <p style="color: #92400e;">
+                    <strong>💡 ¿Por qué es importante?</strong><br>
+                    La autenticación previene accesos no autorizados, permite rastrear quién usa tu API,
+                    y es la base para implementar rate limiting por usuario y monetización.
+                </p>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="../index.html" style="background: #10b981; color: white; padding: 1rem 2rem; text-decoration: none; border-radius: 10px; display: inline-block;">
+                ⬅️ Volver al Panel Principal
+            </a>
+        </div>
+    </div>
+
+    <script>
+        async function testWithoutAuth() {
+            const resultDiv = document.getElementById('result-without-auth');
+            const numA = document.getElementById('numA').value;
+            const numB = document.getElementById('numB').value;
+
+            resultDiv.innerHTML = '<p style="color: #f59e0b; text-align: center;">⏳ Enviando petición sin API Key...</p>';
+
+            try {
+                const response = await fetch(`http://localhost:8080/calc/divide?a=${numA}&b=${numB}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const text = await response.text();
+
+                resultDiv.innerHTML = `
+                    <div style="color: #dc2626; font-size: 1.5rem; margin-bottom: 1rem;">
+                        🚫 Acceso Denegado
+                    </div>
+                    <div style="color: #991b1b;">
+                        <strong>Estado:</strong> ${response.status}<br>
+                        <strong>Mensaje:</strong> No autorizado
+                    </div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #fecaca; color: #7f1d1d; border-radius: 8px;">
+                        ✋ El Gateway bloqueó la petición porque no incluyó una API Key válida
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div style="color: #dc2626;">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testWithAuth() {
+            const resultDiv = document.getElementById('result-with-auth');
+            const numA = document.getElementById('numA').value;
+            const numB = document.getElementById('numB').value;
+
+            resultDiv.innerHTML = '<p style="color: #f59e0b; text-align: center;">⏳ Enviando con API Key...</p>';
+
+            try {
+                const response = await fetch(`http://localhost:8080/calc/divide?a=${numA}&b=${numB}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'test-key-123'
+                    }
+                });
+
+                const data = await response.json();
+
+                resultDiv.innerHTML = `
+                    <div style="color: #10b981; font-size: 1.5rem; margin-bottom: 1rem;">
+                        ✅ ¡Acceso Autorizado!
+                    </div>
+                    <div style="color: #059669; margin-bottom: 1rem;">
+                        <strong>Estado:</strong> ${response.status}<br>
+                        <strong>API Key validada:</strong> test-key-123 ✓
+                    </div>
+                    <div style="background: #e0e7ff; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <div style="font-size: 2rem; color: #667eea; text-align: center; margin-bottom: 0.5rem;">
+                            ${numA} ÷ ${numB} = ${data.resultado}
+                        </div>
+                    </div>
+                    <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 10px; text-align: left; font-size: 0.9rem;">
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #d1fae5; color: #065f46; border-radius: 8px;">
+                        🎉 Con la API Key correcta, el Gateway permitió el acceso al microservicio
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div style="color: #dc2626;">Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "name": "Calculadora Versionada",
+  "api_id": "calc-versioned",
+  "org_id": "default",
+  "use_keyless": true,
+  "version_data": {
+    "not_versioned": false,
+    "default_version": "v2",
+    "versions": {
+      "v1": {
+        "name": "v1"
+      },
+      "v2": {
+        "name": "v2"
+      }
+    }
+  },
+  "definition": {
+    "location": "header",
+    "key": "X-API-Version",
+    "strip_path": false,
+    "fallback_to_default": true
+  },
+  "proxy": {
+    "listen_path": "/versioned/",
+    "target_url": "http://backend-service:3000/direct/",
+    "strip_listen_path": true
+  },
+  "CORS": {
+    "enable": true,
+    "allowed_origins": ["*"],
+    "allowed_methods": ["GET", "POST", "OPTIONS"],
+    "allowed_headers": ["Origin", "Accept", "Content-Type", "X-API-Version"],
+    "exposed_headers": [],
+    "allow_credentials": false,
+    "max_age": 24,
+    "options_passthrough": false,
+    "debug": false
+  },
+  "active": true
+}

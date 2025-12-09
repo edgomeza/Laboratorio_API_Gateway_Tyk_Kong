@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Microservicios - API Gateway</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1 class="logo">
+                    <span class="logo-icon">🧮</span>
+                    Calculadora Microservicios
+                </h1>
+                <p class="subtitle">Aprende API Gateways con Tyk y Kong</p>
+            </div>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-requests">0</div>
+                    <div class="stat-label">Peticiones Totales</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avg-response">0ms</div>
+                    <div class="stat-label">Tiempo Promedio</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="success-rate">100%</div>
+                    <div class="stat-label">Tasa de Éxito</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Calculator Section -->
+            <section class="calculator-section">
+                <div class="section-header">
+                    <h2>🔢 Calculadora Interactiva</h2>
+                    <p>Prueba operaciones matemáticas distribuidas en microservicios</p>
+                </div>
+
+                <div class="calculator-grid">
+                    <!-- Calculator Display -->
+                    <div class="calculator-card">
+                        <div class="calculator">
+                            <!-- Calculator Mode Tabs -->
+                            <div class="calculator-tabs">
+                                <button class="calc-tab active" onclick="switchCalcMode('basica')" id="tab-basica">
+                                    📱 Básica
+                                </button>
+                                <button class="calc-tab" onclick="switchCalcMode('cientifica')" id="tab-cientifica">
+                                    🔬 Científica
+                                </button>
+                            </div>
+
+                            <div class="calculator-display">
+                                <div class="display-operation" id="operation-display"></div>
+                                <div class="display-result" id="result-display">0</div>
+                            </div>
+
+                            <!-- Dynamic Inputs (change based on operation) -->
+                            <div class="calculator-inputs" id="calculator-inputs">
+                                <input type="number" id="num1" placeholder="Número 1" value="15" class="calc-input">
+                                <input type="number" id="num2" placeholder="Número 2" value="25" class="calc-input">
+                            </div>
+
+                            <!-- API Key field (shown for division with Tyk/Kong) -->
+                            <div class="api-key-container" id="api-key-container" style="display: none;">
+                                <div class="api-key-notice">
+                                    <span class="notice-icon">🔒</span>
+                                    <span>Esta operación requiere autenticación</span>
+                                </div>
+                                <input type="text" id="api-key-input" placeholder="🔑 Ingresa API Key" class="api-key-input" value="">
+                                <div class="api-key-hint">
+                                    Tyk: <code>test-key-123</code> | Kong: <code>calc-secret-key-12345</code>
+                                </div>
+                            </div>
+
+                            <!-- BÁSICA MODE BUTTONS -->
+                            <div class="calculator-buttons" id="buttons-basica">
+                                <button class="calc-btn calc-btn-add" onclick="calculate('suma', '+', 2)">
+                                    <span class="btn-icon">➕</span>
+                                    <span class="btn-text">Suma</span>
+                                </button>
+                                <button class="calc-btn calc-btn-subtract" onclick="calculate('resta', '-', 2)">
+                                    <span class="btn-icon">➖</span>
+                                    <span class="btn-text">Resta</span>
+                                </button>
+                                <button class="calc-btn calc-btn-multiply" onclick="calculate('multiplica', '×', 2)">
+                                    <span class="btn-icon">✖️</span>
+                                    <span class="btn-text">Multiplica</span>
+                                </button>
+                                <button class="calc-btn calc-btn-divide" onclick="calculate('divide', '÷', 2)">
+                                    <span class="btn-icon">➗</span>
+                                    <span class="btn-text">Divide</span>
+                                </button>
+                            </div>
+
+                            <!-- CIENTÍFICA MODE BUTTONS -->
+                            <div class="calculator-buttons calculator-buttons-scientific" id="buttons-cientifica" style="display: none;">
+                                <button class="calc-btn calc-btn-scientific" onclick="calculate('raiz', '√', 1)">
+                                    <span class="btn-icon">√</span>
+                                    <span class="btn-text">Raíz</span>
+                                </button>
+                                <button class="calc-btn calc-btn-scientific" onclick="calculate('potencia', '^', 2)">
+                                    <span class="btn-icon">^</span>
+                                    <span class="btn-text">Potencia</span>
+                                </button>
+                                <button class="calc-btn calc-btn-scientific" onclick="calculate('modulo', '%', 2)">
+                                    <span class="btn-icon">%</span>
+                                    <span class="btn-text">Módulo</span>
+                                </button>
+                                <button class="calc-btn calc-btn-scientific" onclick="calculate('logaritmo', 'ln', 1)">
+                                    <span class="btn-icon">ln</span>
+                                    <span class="btn-text">Logaritmo</span>
+                                </button>
+                                <button class="calc-btn calc-btn-scientific" onclick="calculate('seno', 'sin', 1)">
+                                    <span class="btn-icon">sin</span>
+                                    <span class="btn-text">Seno</span>
+                                </button>
+                                <button class="calc-btn calc-btn-scientific" onclick="calculate('coseno', 'cos', 1)">
+                                    <span class="btn-icon">cos</span>
+                                    <span class="btn-text">Coseno</span>
+                                </button>
+                                <button class="calc-btn calc-btn-scientific" onclick="calculate('tangente', 'tan', 1)">
+                                    <span class="btn-icon">tan</span>
+                                    <span class="btn-text">Tangente</span>
+                                </button>
+                            </div>
+
+                            <div class="gateway-selector">
+                                <label>Ruta de acceso:</label>
+                                <select id="gateway-mode" class="gateway-select">
+                                    <option value="tyk">🔷 Tyk Gateway (8080)</option>
+                                    <option value="kong">🦍 Kong Gateway (8000)</option>
+                                    <option value="direct">⚡ Sin Gateway (directo)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Metrics -->
+                    <div class="metrics-card">
+                        <h3>📊 Métricas en Tiempo Real</h3>
+                        <div class="metrics-grid">
+                            <div class="metric-item">
+                                <div class="metric-label">Gateway usado</div>
+                                <div class="metric-value" id="current-gateway">Backend</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Última operación</div>
+                                <div class="metric-value" id="last-operation">-</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Tiempo de respuesta</div>
+                                <div class="metric-value" id="response-time">0ms</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Estado</div>
+                                <div class="metric-value metric-success" id="status">Listo</div>
+                            </div>
+                        </div>
+
+                        <div class="operations-chart">
+                            <h4>Operaciones por tipo</h4>
+                            <div class="chart-bars" id="operations-chart">
+                                <div class="chart-bar">
+                                    <div class="bar bar-add" style="height: 0%" data-count="0"></div>
+                                    <div class="bar-label">Suma</div>
+                                </div>
+                                <div class="chart-bar">
+                                    <div class="bar bar-subtract" style="height: 0%" data-count="0"></div>
+                                    <div class="bar-label">Resta</div>
+                                </div>
+                                <div class="chart-bar">
+                                    <div class="bar bar-multiply" style="height: 0%" data-count="0"></div>
+                                    <div class="bar-label">×</div>
+                                </div>
+                                <div class="chart-bar">
+                                    <div class="bar bar-divide" style="height: 0%" data-count="0"></div>
+                                    <div class="bar-label">÷</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Microservices Architecture -->
+            <section class="architecture-section">
+                <div class="section-header">
+                    <h2>🏗️ Arquitectura de Microservicios</h2>
+                    <p>12 servicios independientes orquestados por API Gateways (5 básicos + 7 científicos)</p>
+                </div>
+
+                <div class="architecture-diagram">
+                    <div class="arch-layer">
+                        <div class="arch-title">Cliente</div>
+                        <div class="arch-node client-node">
+                            <span class="node-icon">💻</span>
+                            <span class="node-name">Tu Navegador</span>
+                        </div>
+                    </div>
+
+                    <div class="arch-arrow">⬇️</div>
+
+                    <div class="arch-layer">
+                        <div class="arch-title">API Gateways</div>
+                        <div class="arch-nodes">
+                            <div class="arch-node gateway-node">
+                                <span class="node-icon">🚪</span>
+                                <span class="node-name">Tyk</span>
+                                <span class="node-port">:8080</span>
+                            </div>
+                            <div class="arch-node gateway-node">
+                                <span class="node-icon">🚪</span>
+                                <span class="node-name">Kong</span>
+                                <span class="node-port">:8000</span>
+                            </div>
+                            <div class="arch-node gateway-node">
+                                <span class="node-icon">🔄</span>
+                                <span class="node-name">Backend</span>
+                                <span class="node-port">:3000</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="arch-arrow">⬇️</div>
+
+                    <div class="arch-layer">
+                        <div class="arch-title">Microservicios</div>
+                        <div class="arch-nodes">
+                            <div class="arch-node service-node service-add">
+                                <span class="node-icon">➕</span>
+                                <span class="node-name">Suma</span>
+                                <span class="node-port">:8081</span>
+                                <div class="node-status" id="status-suma">●</div>
+                            </div>
+                            <div class="arch-node service-node service-subtract">
+                                <span class="node-icon">➖</span>
+                                <span class="node-name">Resta</span>
+                                <span class="node-port">:8082</span>
+                                <div class="node-status" id="status-resta">●</div>
+                            </div>
+                            <div class="arch-node service-node service-multiply">
+                                <span class="node-icon">✖️</span>
+                                <span class="node-name">Multiplica</span>
+                                <span class="node-port">:8083</span>
+                                <div class="node-status" id="status-multiplica">●</div>
+                            </div>
+                            <div class="arch-node service-node service-divide">
+                                <span class="node-icon">➗</span>
+                                <span class="node-name">Divide</span>
+                                <span class="node-port">:8084</span>
+                                <div class="node-status" id="status-divide">●</div>
+                            </div>
+                            <div class="arch-node service-node service-orchestrator">
+                                <span class="node-icon">🎯</span>
+                                <span class="node-name">Orquestador</span>
+                                <span class="node-port">:8085</span>
+                                <div class="node-status" id="status-orquestador">●</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Scientific Microservices Section -->
+            <section class="scientific-services-section">
+                <div class="section-header">
+                    <h2>🔬 Microservicios Científicos (V2)</h2>
+                    <p>7 servicios adicionales para operaciones matemáticas avanzadas</p>
+                </div>
+
+                <div class="architecture-diagram">
+                    <div class="arch-layer">
+                        <div class="arch-title">Microservicios Científicos</div>
+                        <div class="arch-nodes">
+                            <div class="arch-node service-node service-scientific">
+                                <span class="node-icon">√</span>
+                                <span class="node-name">Raíz Cuadrada</span>
+                                <span class="node-port">:8086</span>
+                                <div class="node-status" id="status-raiz">●</div>
+                            </div>
+                            <div class="arch-node service-node service-scientific">
+                                <span class="node-icon">^</span>
+                                <span class="node-name">Potencia</span>
+                                <span class="node-port">:8087</span>
+                                <div class="node-status" id="status-potencia">●</div>
+                            </div>
+                            <div class="arch-node service-node service-scientific">
+                                <span class="node-icon">%</span>
+                                <span class="node-name">Módulo</span>
+                                <span class="node-port">:8088</span>
+                                <div class="node-status" id="status-modulo">●</div>
+                            </div>
+                            <div class="arch-node service-node service-scientific">
+                                <span class="node-icon">ln</span>
+                                <span class="node-name">Logaritmo</span>
+                                <span class="node-port">:8089</span>
+                                <div class="node-status" id="status-logaritmo">●</div>
+                            </div>
+                            <div class="arch-node service-node service-scientific">
+                                <span class="node-icon">sin</span>
+                                <span class="node-name">Seno</span>
+                                <span class="node-port">:8090</span>
+                                <div class="node-status" id="status-seno">●</div>
+                            </div>
+                            <div class="arch-node service-node service-scientific">
+                                <span class="node-icon">cos</span>
+                                <span class="node-name">Coseno</span>
+                                <span class="node-port">:8091</span>
+                                <div class="node-status" id="status-coseno">●</div>
+                            </div>
+                            <div class="arch-node service-node service-scientific">
+                                <span class="node-icon">tan</span>
+                                <span class="node-name">Tangente</span>
+                                <span class="node-port">:8092</span>
+                                <div class="node-status" id="status-tangente">●</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Exercises Section -->
+            <section class="exercises-section">
+                <div class="section-header">
+                    <h2>📚 Ejercicios Prácticos</h2>
+                    <p>Aprende configurando API Gateways paso a paso</p>
+                </div>
+
+                <div class="exercises-tabs">
+                    <button class="tab-btn active" onclick="switchTab('tyk')" id="tab-tyk">
+                        <span class="tab-icon">🔷</span> Tyk Gateway
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('kong')" id="tab-kong">
+                        <span class="tab-icon">🦍</span> Kong Gateway
+                    </button>
+                </div>
+
+                <!-- Tyk Exercises -->
+                <div class="exercises-grid" id="tyk-exercises">
+                    <div class="exercise-card" data-gateway="tyk" data-exercise="1">
+                        <div class="exercise-number">01</div>
+                        <div class="exercise-content">
+                            <h3>Proxy Básico</h3>
+                            <p>Configura tu primer proxy para el microservicio de suma</p>
+                            <div class="exercise-tags">
+                                <span class="tag tag-basic">Básico</span>
+                                <span class="tag tag-time">⏱️ 5 min</span>
+                            </div>
+                            <div class="exercise-path">📁 exercises/tyk/01-basic-proxy/README.md</div>
+                            <div class="exercise-actions">
+                                <button class="btn-demo" onclick="openDemo('tyk', 1)">
+                                    <span class="btn-icon">🚀</span> Ver Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-gateway="tyk" data-exercise="2">
+                        <div class="exercise-number">02</div>
+                        <div class="exercise-content">
+                            <h3>Autenticación</h3>
+                            <p>Protege operaciones sensibles con API Keys</p>
+                            <div class="exercise-tags">
+                                <span class="tag tag-basic">Básico</span>
+                                <span class="tag tag-time">⏱️ 10 min</span>
+                            </div>
+                            <div class="exercise-path">📁 exercises/tyk/02-authentication/README.md</div>
+                            <div class="exercise-actions">
+                                <button class="btn-demo" onclick="openDemo('tyk', 2)">
+                                    <span class="btn-icon">🚀</span> Ver Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-gateway="tyk" data-exercise="3">
+                        <div class="exercise-number">03</div>
+                        <div class="exercise-content">
+                            <h3>Rate Limiting</h3>
+                            <p>Limita peticiones para evitar sobrecarga</p>
+                            <div class="exercise-tags">
+                                <span class="tag tag-intermediate">Intermedio</span>
+                                <span class="tag tag-time">⏱️ 10 min</span>
+                            </div>
+                            <div class="exercise-path">📁 exercises/tyk/03-rate-limiting/README.md</div>
+                            <div class="exercise-actions">
+                                <button class="btn-demo" onclick="openDemo('tyk', 3)">
+                                    <span class="btn-icon">🚀</span> Ver Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-gateway="tyk" data-exercise="4">
+                        <div class="exercise-number">04</div>
+                        <div class="exercise-content">
+                            <h3>Caché de Respuestas</h3>
+                            <p>Acelera 20x con comparativas de performance</p>
+                            <div class="exercise-tags">
+                                <span class="tag tag-intermediate">Intermedio</span>
+                                <span class="tag tag-time">⏱️ 15 min</span>
+                                <span class="tag tag-hot">🔥 Recomendado</span>
+                            </div>
+                            <div class="exercise-path">📁 exercises/tyk/04-caching/README.md</div>
+                            <div class="exercise-actions">
+                                <button class="btn-demo" onclick="openDemo('tyk', 4)">
+                                    <span class="btn-icon">🚀</span> Ver Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-gateway="tyk" data-exercise="5">
+                        <div class="exercise-number">05</div>
+                        <div class="exercise-content">
+                            <h3>Transformaciones</h3>
+                            <p>Modifica requests y responses al vuelo</p>
+                            <div class="exercise-tags">
+                                <span class="tag tag-advanced">Avanzado</span>
+                                <span class="tag tag-time">⏱️ 15 min</span>
+                            </div>
+                            <div class="exercise-path">📁 exercises/tyk/05-transformations/README.md</div>
+                            <div class="exercise-actions">
+                                <button class="btn-demo" onclick="openDemo('tyk', 5)">
+                                    <span class="btn-icon">🚀</span> Ver Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-gateway="tyk" data-exercise="6">
+                        <div class="exercise-number">06</div>
+                        <div class="exercise-content">
+                            <h3>API Versionada</h3>
+                            <p>Implementa v1 (Básica) y v2 (Científica) con versionado por header</p>
+                            <div class="exercise-tags">
+                                <span class="tag tag-intermediate">Intermedio</span>
+                                <span class="tag tag-time">⏱️ 20 min</span>
+                            </div>
+                            <div class="exercise-path">📁 exercises/tyk/06-versioning/README.md</div>
+                            <div class="exercise-actions">
+                                <button class="btn-demo" onclick="openDemo('tyk', 6)">
+                                    <span class="btn-icon">🚀</span> Ver Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-gateway="tyk" data-exercise="7">
+                        <div class="exercise-number">07</div>
+                        <div class="exercise-content">
+                            <h3>Logging Detallado</h3>
+                            <p>Activa logs completos para auditoría en resta</p>
+                            <div class="exercise-tags">
+                                <span class="tag tag-basic">Básico</span>
+                                <span class="tag tag-time">⏱️ 10 min</span>
+                            </div>
+                            <div class="exercise-path">📁 exercises/tyk/07-logging/README.md</div>
+                            <div class="exercise-actions">
+                                <button class="btn-demo" onclick="openDemo('tyk', 7)">
+                                    <span class="btn-icon">🚀</span> Ver Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Kong Exercises -->
+                <div class="exercises-grid" id="kong-exercises" style="display: none;">
+                    <div class="exercise-card" data-gateway="kong" data-exercise="1">
+                        <div class="exercise-number">01</div>
+                        <div class="exercise-content">
+                            <h3>Proxy Básico</h3>
+                            <p>Crea un Service y Route para el microservicio de suma</p>
+                            <div class="exercise-tags">
+                                <span class="tag tag-basic">Básico</span>
+                                <span class="tag tag-time">⏱️ 5 min</span>
+                            </div>
+                            <div class="exercise-path">📁 exercises/kong/01-basic-proxy/README.md</div>
+                            <div class="exercise-actions">
+                                <button class="btn-demo" onclick="openDemo('kong', 1)">
+                                    <span class="btn-icon">🚀</span> Ver Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-gateway="kong" data-exercise="2">
+                        <div class="exercise-number">02</div>
+                        <div class="exercise-content">
+                            <h3>Autenticación</h3>
+                            <p>Añade el plugin Key-Auth para proteger la división</p>
+                            <div class="exercise-tags">
+                                <span class="tag tag-basic">Básico</span>
+                                <span class="tag tag-time">⏱️ 10 min</span>
+                            </div>
+                            <div class="exercise-path">📁 exercises/kong/02-authentication/README.md</div>
+                            <div class="exercise-actions">
+                                <button class="btn-demo" onclick="openDemo('kong', 2)">
+                                    <span class="btn-icon">🚀</span> Ver Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-gateway="kong" data-exercise="3">
+                        <div class="exercise-number">03</div>
+                        <div class="exercise-content">
+                            <h3>Rate Limiting</h3>
+                            <p>Limita peticiones con el plugin de Kong</p>
+                            <div class="exercise-tags">
+                                <span class="tag tag-intermediate">Intermedio</span>
+                                <span class="tag tag-time">⏱️ 10 min</span>
+                            </div>
+                            <div class="exercise-path">📁 exercises/kong/03-rate-limiting/README.md</div>
+                            <div class="exercise-actions">
+                                <button class="btn-demo" onclick="openDemo('kong', 3)">
+                                    <span class="btn-icon">🚀</span> Ver Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-gateway="kong" data-exercise="4">
+                        <div class="exercise-number">04</div>
+                        <div class="exercise-content">
+                            <h3>Proxy Cache</h3>
+                            <p>Acelera 20x activando caché de respuestas</p>
+                            <div class="exercise-tags">
+                                <span class="tag tag-intermediate">Intermedio</span>
+                                <span class="tag tag-time">⏱️ 15 min</span>
+                                <span class="tag tag-hot">🔥 Recomendado</span>
+                            </div>
+                            <div class="exercise-path">📁 exercises/kong/04-caching/README.md</div>
+                            <div class="exercise-actions">
+                                <button class="btn-demo" onclick="openDemo('kong', 4)">
+                                    <span class="btn-icon">🚀</span> Ver Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-gateway="kong" data-exercise="5">
+                        <div class="exercise-number">05</div>
+                        <div class="exercise-content">
+                            <h3>Request Transformer</h3>
+                            <p>Modifica requests y responses en tiempo real</p>
+                            <div class="exercise-tags">
+                                <span class="tag tag-advanced">Avanzado</span>
+                                <span class="tag tag-time">⏱️ 15 min</span>
+                            </div>
+                            <div class="exercise-path">📁 exercises/kong/05-transformations/README.md</div>
+                            <div class="exercise-actions">
+                                <button class="btn-demo" onclick="openDemo('kong', 5)">
+                                    <span class="btn-icon">🚀</span> Ver Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-gateway="kong" data-exercise="6">
+                        <div class="exercise-number">06</div>
+                        <div class="exercise-content">
+                            <h3>API Versionada</h3>
+                            <p>Implementa v1 (Básica) y v2 (Científica) con versionado por header</p>
+                            <div class="exercise-tags">
+                                <span class="tag tag-intermediate">Intermedio</span>
+                                <span class="tag tag-time">⏱️ 20 min</span>
+                            </div>
+                            <div class="exercise-path">📁 exercises/kong/06-versioning/README.md</div>
+                            <div class="exercise-actions">
+                                <button class="btn-demo" onclick="openDemo('kong', 6)">
+                                    <span class="btn-icon">🚀</span> Ver Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-gateway="kong" data-exercise="7">
+                        <div class="exercise-number">07</div>
+                        <div class="exercise-content">
+                            <h3>File Log</h3>
+                            <p>Guarda logs detallados de resta en archivo JSON</p>
+                            <div class="exercise-tags">
+                                <span class="tag tag-basic">Básico</span>
+                                <span class="tag tag-time">⏱️ 10 min</span>
+                            </div>
+                            <div class="exercise-path">📁 exercises/kong/07-logging/README.md</div>
+                            <div class="exercise-actions">
+                                <button class="btn-demo" onclick="openDemo('kong', 7)">
+                                    <span class="btn-icon">🚀</span> Ver Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Performance Comparison -->
+            <section class="comparison-section">
+                <div class="section-header">
+                    <h2>⚡ Comparativa de Performance</h2>
+                    <p>Prueba la diferencia entre con y sin caché</p>
+                </div>
+
+                <div class="comparison-grid">
+                    <div class="comparison-card">
+                        <h3>🔴 Sin Caché</h3>
+                        <button class="test-btn test-btn-nocache" onclick="testPerformance('nocache')">
+                            Probar 50 requests
+                        </button>
+                        <div class="test-results" id="results-nocache">
+                            <div class="result-item">
+                                <span>Tiempo total:</span>
+                                <span class="result-value">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span>Tiempo promedio:</span>
+                                <span class="result-value">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span>Peticiones/seg:</span>
+                                <span class="result-value">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="comparison-vs">VS</div>
+
+                    <div class="comparison-card">
+                        <h3>🟢 Con Caché</h3>
+                        <button class="test-btn test-btn-cache" onclick="testPerformance('cache')">
+                            Probar 50 requests
+                        </button>
+                        <div class="test-results" id="results-cache">
+                            <div class="result-item">
+                                <span>Tiempo total:</span>
+                                <span class="result-value">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span>Tiempo promedio:</span>
+                                <span class="result-value">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span>Peticiones/seg:</span>
+                                <span class="result-value">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="comparison-result" id="comparison-result" style="display: none;">
+                    <div class="result-highlight">
+                        <span class="result-icon">🚀</span>
+                        <span class="result-text">El caché es <strong id="improvement-factor">-</strong> veces más rápido!</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 - Proyecto Calculadora Microservicios</p>
+            <p>Eduardo Gómez Almendral y Manahen García Garrido</p>
+            <p>Arquitectura Orientada a Servicios - Universidad de Extremadura</p>
+        </div>
+    </footer>
+
+    <!-- Scripts: progress.js MUST load before app.js -->
+    <script src="js/progress.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

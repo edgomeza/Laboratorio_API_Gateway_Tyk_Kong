@@ -1,0 +1,65 @@
+{
+  "name": "Versioned API",
+  "slug": "versioned-api",
+  "api_id": "versioned-api",
+  "org_id": "1",
+  "use_keyless": true,
+  "version_data": {
+    "not_versioned": false,
+    "default_version": "v2",
+    "versions": {
+      "v1": {
+        "name": "v1",
+        "expires": "",
+        "paths": {
+          "ignored": [],
+          "white_list": [],
+          "black_list": []
+        },
+        "use_extended_paths": true,
+        "extended_paths": {
+          "url_rewrites": [
+            {
+              "path": "/info",
+              "method": "GET",
+              "match_pattern": "/info",
+              "rewrite_to": "/v1/info"
+            }
+          ]
+        }
+      },
+      "v2": {
+        "name": "v2",
+        "expires": "",
+        "paths": {
+          "ignored": [],
+          "white_list": [],
+          "black_list": []
+        },
+        "use_extended_paths": true,
+        "extended_paths": {
+          "url_rewrites": [
+            {
+              "path": "/info",
+              "method": "GET",
+              "match_pattern": "/info",
+              "rewrite_to": "/v2/info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "definition": {
+    "location": "header",
+    "key": "X-API-Version",
+    "strip_path": false,
+    "fallback_to_default": true
+  },
+  "proxy": {
+    "listen_path": "/versioned/",
+    "target_url": "http://backend-service:3000/",
+    "strip_listen_path": true
+  },
+  "active": true
+}

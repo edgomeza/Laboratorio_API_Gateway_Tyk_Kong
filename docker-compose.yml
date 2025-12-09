@@ -1,0 +1,450 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # WEB FRONTEND (Learning Platform)
+  # ============================================
+  web-frontend:
+    image: nginx:alpine
+    container_name: web-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./web:/usr/share/nginx/html:ro
+    networks:
+      - tyk
+      - kong-net
+    restart: unless-stopped
+
+  # ============================================
+  # CALCULADORA MICROSERVICES
+  # ============================================
+  calc-suma:
+    build: ./calculadora-microservicios/suma
+    container_name: calc-suma
+    ports:
+      - "8081:8080"
+    networks:
+      - tyk
+      - kong-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/suma/calculadora/suma?a=1&b=1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  calc-resta:
+    build: ./calculadora-microservicios/resta
+    container_name: calc-resta
+    ports:
+      - "8082:8080"
+    networks:
+      - tyk
+      - kong-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/resta/calculadora/resta?a=5&b=2"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  calc-multiplica:
+    build: ./calculadora-microservicios/multiplica
+    container_name: calc-multiplica
+    ports:
+      - "8083:8080"
+    networks:
+      - tyk
+      - kong-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/multiplica/calculadora/multiplica?a=3&b=4"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  calc-divide:
+    build: ./calculadora-microservicios/divide
+    container_name: calc-divide
+    ports:
+      - "8084:8080"
+    networks:
+      - tyk
+      - kong-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/divide/calculadora/divide?a=10&b=2"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  calc-orquestador:
+    build: ./calculadora-microservicios/calculadora
+    container_name: calc-orquestador
+    ports:
+      - "8085:8080"
+    networks:
+      - tyk
+      - kong-net
+    depends_on:
+      - calc-suma
+      - calc-resta
+      - calc-multiplica
+      - calc-divide
+      - calc-raiz
+      - calc-potencia
+      - calc-modulo
+      - calc-logaritmo
+      - calc-seno
+      - calc-coseno
+      - calc-tangente
+    environment:
+      # V1 - Operaciones Básicas
+      - SUMA_URL=http://calc-suma:8080/suma/calculadora/suma
+      - RESTA_URL=http://calc-resta:8080/resta/calculadora/resta
+      - MULTIPLICA_URL=http://calc-multiplica:8080/multiplica/calculadora/multiplica
+      - DIVIDE_URL=http://calc-divide:8080/divide/calculadora/divide
+      # V2 - Operaciones Científicas
+      - RAIZ_URL=http://calc-raiz:8080/raiz/calculadora/raiz
+      - POTENCIA_URL=http://calc-potencia:8080/potencia/calculadora/potencia
+      - MODULO_URL=http://calc-modulo:8080/modulo/calculadora/modulo
+      - LOGARITMO_URL=http://calc-logaritmo:8080/logaritmo/calculadora/logaritmo
+      - SENO_URL=http://calc-seno:8080/seno/calculadora/seno
+      - COSENO_URL=http://calc-coseno:8080/coseno/calculadora/coseno
+      - TANGENTE_URL=http://calc-tangente:8080/tangente/calculadora/tangente
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/calculadora/calc/suma?a=1&b=1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    restart: unless-stopped
+
+  # ============================================
+  # CALCULADORA MICROSERVICES V2 (CIENTÍFICA)
+  # ============================================
+  calc-raiz:
+    build: ./calculadora-microservicios/raiz
+    container_name: calc-raiz
+    ports:
+      - "8086:8080"
+    networks:
+      - tyk
+      - kong-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/raiz/calculadora/raiz?n=25"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  calc-potencia:
+    build: ./calculadora-microservicios/potencia
+    container_name: calc-potencia
+    ports:
+      - "8087:8080"
+    networks:
+      - tyk
+      - kong-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/potencia/calculadora/potencia?base=2&exponente=3"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  calc-modulo:
+    build: ./calculadora-microservicios/modulo
+    container_name: calc-modulo
+    ports:
+      - "8088:8080"
+    networks:
+      - tyk
+      - kong-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/modulo/calculadora/modulo?a=17&b=5"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  calc-logaritmo:
+    build: ./calculadora-microservicios/logaritmo
+    container_name: calc-logaritmo
+    ports:
+      - "8089:8080"
+    networks:
+      - tyk
+      - kong-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/logaritmo/calculadora/logaritmo?n=100"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  calc-seno:
+    build: ./calculadora-microservicios/seno
+    container_name: calc-seno
+    ports:
+      - "8090:8080"
+    networks:
+      - tyk
+      - kong-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/seno/calculadora/seno?angulo=30"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  calc-coseno:
+    build: ./calculadora-microservicios/coseno
+    container_name: calc-coseno
+    ports:
+      - "8091:8080"
+    networks:
+      - tyk
+      - kong-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/coseno/calculadora/coseno?angulo=60"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  calc-tangente:
+    build: ./calculadora-microservicios/tangente
+    container_name: calc-tangente
+    ports:
+      - "8092:8080"
+    networks:
+      - tyk
+      - kong-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/tangente/calculadora/tangente?angulo=45"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # ============================================
+  # BACKEND SERVICE (Node.js + Express)
+  # ============================================
+  backend-service:
+    build: ./api
+    container_name: backend-service
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./api/server.js:/app/server.js:ro
+    networks:
+      - tyk
+      - kong-net
+    depends_on:
+      calc-suma:
+        condition: service_healthy
+      calc-resta:
+        condition: service_healthy
+      calc-multiplica:
+        condition: service_healthy
+      calc-divide:
+        condition: service_healthy
+      calc-orquestador:
+        condition: service_healthy
+      calc-raiz:
+        condition: service_healthy
+      calc-potencia:
+        condition: service_healthy
+      calc-modulo:
+        condition: service_healthy
+      calc-logaritmo:
+        condition: service_healthy
+      calc-seno:
+        condition: service_healthy
+      calc-coseno:
+        condition: service_healthy
+      calc-tangente:
+        condition: service_healthy
+    environment:
+      - CALC_SUMA_URL=http://calc-suma:8080
+      - CALC_RESTA_URL=http://calc-resta:8080
+      - CALC_MULTIPLICA_URL=http://calc-multiplica:8080
+      - CALC_DIVIDE_URL=http://calc-divide:8080
+      - CALC_ORQUESTADOR_URL=http://calc-orquestador:8080
+      - CALC_RAIZ_URL=http://calc-raiz:8080
+      - CALC_POTENCIA_URL=http://calc-potencia:8080
+      - CALC_MODULO_URL=http://calc-modulo:8080
+      - CALC_LOGARITMO_URL=http://calc-logaritmo:8080
+      - CALC_SENO_URL=http://calc-seno:8080
+      - CALC_COSENO_URL=http://calc-coseno:8080
+      - CALC_TANGENTE_URL=http://calc-tangente:8080
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  # ============================================
+  # TYK GATEWAY STACK
+  # ============================================
+  tyk-redis:
+    image: redis:7-alpine
+    container_name: tyk-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - tyk-redis-data:/data
+    networks:
+      - tyk
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  tyk-gateway:
+    image: tykio/tyk-gateway:v5.2
+    container_name: tyk-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - TYK_GW_SECRET=foo
+      - TYK_GW_STORAGE_HOST=tyk-redis
+      - TYK_GW_STORAGE_PORT=6379
+      - TYK_GW_STORAGE_PASSWORD=
+    volumes:
+      - ./gateway-configs/tyk/tyk.conf:/opt/tyk-gateway/tyk.conf
+      - ./gateway-configs/tyk/apps-active:/opt/tyk-gateway/apps
+      - ./gateway-configs/tyk/middleware:/opt/tyk-gateway/middleware
+      - ./gateway-configs/tyk/policies:/opt/tyk-gateway/policies
+    depends_on:
+      tyk-redis:
+        condition: service_healthy
+      backend-service:
+        condition: service_healthy
+    networks:
+      - tyk
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/hello"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+
+  tyk-pump:
+    image: tykio/tyk-pump-docker-pub:v1.9
+    container_name: tyk-pump
+    environment:
+      - TYK_PMP_PUMPS_STDOUT_TYPE=stdout
+      - TYK_PMP_ANALYTICSSTORAGECONFIG_TYPE=redis
+      - TYK_PMP_ANALYTICSSTORAGECONFIG_HOST=tyk-redis
+      - TYK_PMP_ANALYTICSSTORAGECONFIG_PORT=6379
+    depends_on:
+      - tyk-redis
+      - tyk-gateway
+    networks:
+      - tyk
+    restart: unless-stopped
+
+  # ============================================
+  # KONG GATEWAY STACK
+  # ============================================
+  kong-database:
+    image: postgres:15-alpine
+    container_name: kong-database
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_DB: kong
+      POSTGRES_PASSWORD: kongpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - kong-postgres-data:/var/lib/postgresql/data
+    networks:
+      - kong-net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "kong"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  kong-migration:
+    image: kong/kong-gateway:3.5
+    container_name: kong-migration
+    command: kong migrations bootstrap
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kongpass
+      KONG_PG_DATABASE: kong
+    depends_on:
+      kong-database:
+        condition: service_healthy
+    networks:
+      - kong-net
+    restart: on-failure
+
+  kong:
+    image: kong/kong-gateway:3.5
+    container_name: kong
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kongpass
+      KONG_PG_DATABASE: kong
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_ADMIN_GUI_URL: http://localhost:8002
+    ports:
+      - "8000:8000"  # Proxy HTTP
+      - "8443:8443"  # Proxy HTTPS
+      - "8001:8001"  # Admin API HTTP
+      - "8444:8444"  # Admin API HTTPS
+      - "8002:8002"  # Kong Manager
+    depends_on:
+      kong-database:
+        condition: service_healthy
+      kong-migration:
+        condition: service_completed_successfully
+      backend-service:
+        condition: service_healthy
+    networks:
+      - kong-net
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  tyk-redis-data:
+  kong-postgres-data:
+
+networks:
+  tyk:
+    driver: bridge
+  kong-net:
+    driver: bridge

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo: Transformaciones - Tyk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .success-badge {
+            display: inline-block;
+            background: #10b981;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: #333;
+        }
+
+        .demo-section h2 {
+            color: #a8edea;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #a8edea;
+            padding-bottom: 0.5rem;
+        }
+
+        .transformation-flow {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+            align-items: center;
+            gap: 1.5rem;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: linear-gradient(to right, #f0fdf4, #dbeafe);
+            border-radius: 15px;
+        }
+
+        .transform-box {
+            padding: 1.5rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .transform-box.highlight {
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .arrow {
+            font-size: 2rem;
+            color: #a8edea;
+        }
+
+        .header-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .header-box {
+            padding: 1.5rem;
+            border-radius: 15px;
+        }
+
+        .original {
+            background: #fef3c7;
+            border: 3px solid #f59e0b;
+        }
+
+        .modified {
+            background: #d1fae5;
+            border: 3px solid #10b981;
+        }
+
+        .header-list {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .header-item {
+            padding: 0.5rem;
+            border-bottom: 1px solid #334155;
+        }
+
+        .header-item:last-child {
+            border-bottom: none;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-wrapper label {
+            color: #0c4a6e;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-wrapper input {
+            padding: 0.75rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .btn-test {
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            color: #333;
+            border: none;
+            padding: 1.25rem 3rem;
+            font-size: 1.25rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: all 0.3s;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .btn-test:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .result-area {
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-top: 1rem;
+            min-height: 120px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="success-badge">¡EJERCICIO COMPLETADO!</div>
+            <h1>🔄 Transformaciones de Headers</h1>
+            <p style="font-size: 1.25rem; margin-top: 1rem; opacity: 0.9;">
+                Has configurado transformaciones en tiempo real para el microservicio de resta
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h2>¿Qué acabas de hacer?</h2>
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+                Has configurado <span style="background: rgba(168, 237, 234, 0.3); padding: 0.2rem 0.5rem; border-radius: 5px; font-weight: bold;">
+                Transformaciones Automáticas</span> que modifican headers HTTP en tiempo real.
+                El Gateway puede añadir, modificar o eliminar headers sin tocar el microservicio de resta.
+            </p>
+
+            <div class="transformation-flow">
+                <div class="transform-box">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📨</div>
+                    <h4>Petición Original</h4>
+                    <p style="color: #64748b; margin-top: 0.5rem;">Headers básicos</p>
+                </div>
+
+                <div class="arrow">→</div>
+
+                <div class="transform-box highlight">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">✨</div>
+                    <h4>Gateway Transforma</h4>
+                    <p style="margin-top: 0.5rem;">Añade headers personalizados</p>
+                </div>
+
+                <div class="arrow">→</div>
+
+                <div class="transform-box">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📬</div>
+                    <h4>Petición Modificada</h4>
+                    <p style="color: #64748b; margin-top: 0.5rem;">Headers enriquecidos</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Comparación de Headers</h2>
+            <div class="header-comparison">
+                <div class="header-box original">
+                    <h3 style="color: #92400e; margin-bottom: 1rem;">📋 Headers Originales</h3>
+                    <div class="header-list">
+                        <div class="header-item">Content-Type: application/json</div>
+                        <div class="header-item">Host: localhost:8080</div>
+                        <div class="header-item">User-Agent: Mozilla/5.0</div>
+                    </div>
+                </div>
+
+                <div class="header-box modified">
+                    <h3 style="color: #065f46; margin-bottom: 1rem;">✨ Headers Transformados</h3>
+                    <div class="header-list">
+                        <div class="header-item">Content-Type: application/json</div>
+                        <div class="header-item">Host: localhost:8080</div>
+                        <div class="header-item">User-Agent: Mozilla/5.0</div>
+                        <div class="header-item" style="background: #10b981; color: white; border-radius: 5px; padding: 0.5rem;">
+                            <strong>X-Custom-Header: TykGateway</strong> ⭐ NUEVO
+                        </div>
+                        <div class="header-item" style="background: #10b981; color: white; border-radius: 5px; padding: 0.5rem; margin-top: 0.5rem;">
+                            <strong>X-Powered-By: API-Gateway-Lab</strong> ⭐ NUEVO
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Prueba las Transformaciones - Microservicio Resta</h2>
+            <p style="color: #64748b; margin-bottom: 1.5rem; text-align: center;">
+                Calcula una resta y observa cómo el Gateway añade headers personalizados:
+            </p>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <label>Minuendo (A):</label>
+                    <input type="number" id="numA" value="100" />
+                </div>
+                <div class="input-wrapper">
+                    <label>Sustraendo (B):</label>
+                    <input type="number" id="numB" value="35" />
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <button class="btn-test" onclick="testTransformations()">
+                    🔍 Calcular Resta y Ver Headers
+                </button>
+                <div class="result-area" id="result"></div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Casos de Uso Reales</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+                <div style="background: #e0e7ff; padding: 1.5rem; border-radius: 10px;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🏷️</div>
+                    <h4 style="color: #3730a3;">Versionado de API</h4>
+                    <p style="color: #4338ca; margin-top: 0.5rem;">Añade headers de versión automáticamente</p>
+                </div>
+                <div style="background: #fce7f3; padding: 1.5rem; border-radius: 10px;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+                    <h4 style="color: #831843;">Tracking y Analytics</h4>
+                    <p style="color: #9f1239; margin-top: 0.5rem;">Inyecta IDs de rastreo en cada petición</p>
+                </div>
+                <div style="background: #d1fae5; padding: 1.5rem; border-radius: 10px;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔒</div>
+                    <h4 style="color: #065f46;">Headers de Seguridad</h4>
+                    <p style="color: #047857; margin-top: 0.5rem;">Añade CORS, CSP y otros headers de seguridad</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="../index.html" style="background: #10b981; color: white; padding: 1rem 2rem; text-decoration: none; border-radius: 10px; display: inline-block;">
+                ⬅️ Volver al Panel Principal
+            </a>
+        </div>
+    </div>
+
+    <script>
+        async function testTransformations() {
+            const resultDiv = document.getElementById('result');
+            const numA = document.getElementById('numA').value;
+            const numB = document.getElementById('numB').value;
+
+            resultDiv.innerHTML = '<p style="color: #f59e0b; text-align: center;">⏳ Realizando petición...</p>';
+
+            try {
+                const response = await fetch(`http://localhost:8080/calc/resta?a=${numA}&b=${numB}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                const headers = {};
+                response.headers.forEach((value, key) => {
+                    headers[key] = value;
+                });
+
+                resultDiv.innerHTML = `
+                    <div style="color: #10b981; font-size: 1.5rem; margin-bottom: 1rem; text-align: center;">
+                        ✅ ¡Transformación exitosa!
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4 style="color: #0f172a; margin-bottom: 1rem;">📄 Respuesta del Servidor:</h4>
+                        <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 10px; font-family: monospace; font-size: 0.9rem; overflow-x: auto;">
+                            <pre style="margin: 0;">${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4 style="color: #0f172a; margin-bottom: 1rem;">📬 Headers de Respuesta:</h4>
+                        <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 10px; font-family: monospace; font-size: 0.9rem; max-height: 300px; overflow-y: auto;">
+                            ${Object.entries(headers).map(([key, value]) => {
+                                const isCustom = key.startsWith('x-custom') || key.startsWith('x-powered');
+                                return `<div style="padding: 0.3rem; ${isCustom ? 'background: #10b981; border-radius: 5px; margin: 0.2rem 0;' : ''}">
+                                    <strong>${key}:</strong> ${value} ${isCustom ? '⭐' : ''}
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                    <div style="background: #dbeafe; padding: 1.5rem; border-radius: 10px; border: 2px solid #0ea5e9;">
+                        <p style="color: #0c4a6e; font-size: 1.1rem; text-align: center;">
+                            🎯 Los headers marcados con ⭐ fueron añadidos automáticamente por el Gateway
+                        </p>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div style="color: #ef4444; text-align: center;">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

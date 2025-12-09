@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo: API Versionada - Tyk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .success-badge {
+            display: inline-block;
+            background: #10b981;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: #333;
+        }
+
+        .demo-section h2 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .highlight {
+            background: rgba(245, 158, 11, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .version-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .version-box {
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .version-v1 {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .version-v2 {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .version-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .version-box h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .version-features {
+            text-align: left;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .version-features li {
+            margin: 0.5rem 0;
+            list-style-position: inside;
+        }
+
+        .interactive-demo {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .control-card h4 {
+            color: #0ea5e9;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .btn-test {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.25rem;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-test:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn-v1 {
+            background: #3b82f6;
+        }
+
+        .btn-v1:hover {
+            background: #2563eb;
+        }
+
+        .btn-v2 {
+            background: #8b5cf6;
+        }
+
+        .btn-v2:hover {
+            background: #7c3aed;
+        }
+
+        .result-area {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 10px;
+            min-height: 100px;
+            border: 2px dashed #cbd5e1;
+        }
+
+        .btn-home {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 2rem;
+        }
+
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .api-table th {
+            background: #667eea;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+        }
+
+        .api-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .api-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .code-tag {
+            background: #1e293b;
+            color: #10b981;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .info-box {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="success-badge">¡EJERCICIO COMPLETADO!</div>
+            <h1>🔄 API Versionada con Tyk</h1>
+            <p style="font-size: 1.25rem; margin-top: 1rem; opacity: 0.9;">
+                Has implementado versionado de API usando headers HTTP
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h2>¿Qué acabas de hacer?</h2>
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+                Has configurado <span class="highlight">API Versioning</span> usando el header <code class="code-tag">X-API-Version</code>.
+                Esto permite que tu calculadora soporte dos versiones simultáneamente: una básica (V1) y una científica (V2),
+                permitiendo a los clientes migrar gradualmente a la nueva versión.
+            </p>
+
+            <div class="info-box">
+                <strong>💡 Concepto clave:</strong> El versionado de APIs es esencial para evolucionar tus servicios sin romper integraciones existentes.
+                Los clientes antiguos siguen usando V1 mientras los nuevos pueden aprovechar V2.
+            </div>
+
+            <div class="version-comparison">
+                <div class="version-box version-v1">
+                    <div class="version-icon">📱</div>
+                    <h3>Versión 1 (Básica)</h3>
+                    <p style="font-size: 1.1rem; margin-bottom: 1rem;">Calculadora tradicional</p>
+                    <div class="version-features">
+                        <strong>Operaciones incluidas:</strong>
+                        <ul>
+                            <li>➕ Suma</li>
+                            <li>➖ Resta</li>
+                            <li>✖️ Multiplicación</li>
+                            <li>➗ División</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="version-box version-v2">
+                    <div class="version-icon">🔬</div>
+                    <h3>Versión 2 (Científica)</h3>
+                    <p style="font-size: 1.1rem; margin-bottom: 1rem;">Calculadora avanzada</p>
+                    <div class="version-features">
+                        <strong>Operaciones nuevas:</strong>
+                        <ul>
+                            <li>√ Raíz cuadrada</li>
+                            <li>^ Potencia</li>
+                            <li>% Módulo</li>
+                            <li>ln Logaritmo</li>
+                            <li>sin/cos/tan Trigonometría</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Tabla de Operaciones Disponibles</h2>
+
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Versión</th>
+                        <th>Operación</th>
+                        <th>Endpoint</th>
+                        <th>Header Requerido</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>V1</td>
+                        <td>Suma</td>
+                        <td><code class="code-tag">/versioned/suma?a=15&b=25</code></td>
+                        <td><code class="code-tag">X-API-Version: v1</code></td>
+                    </tr>
+                    <tr>
+                        <td>V1</td>
+                        <td>Resta</td>
+                        <td><code class="code-tag">/versioned/resta?a=100&b=35</code></td>
+                        <td><code class="code-tag">X-API-Version: v1</code></td>
+                    </tr>
+                    <tr>
+                        <td>V2</td>
+                        <td>Raíz cuadrada</td>
+                        <td><code class="code-tag">/versioned/raiz?n=25</code></td>
+                        <td><code class="code-tag">X-API-Version: v2</code></td>
+                    </tr>
+                    <tr>
+                        <td>V2</td>
+                        <td>Potencia</td>
+                        <td><code class="code-tag">/versioned/potencia?base=2&exponente=10</code></td>
+                        <td><code class="code-tag">X-API-Version: v2</code></td>
+                    </tr>
+                    <tr>
+                        <td>V2</td>
+                        <td>Seno</td>
+                        <td><code class="code-tag">/versioned/seno?angulo=30</code></td>
+                        <td><code class="code-tag">X-API-Version: v2</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="demo-section">
+            <h2>Prueba en Vivo</h2>
+            <div class="interactive-demo">
+                <h3 style="color: #0ea5e9; margin-bottom: 1.5rem;">Prueba las diferentes versiones</h3>
+
+                <div class="demo-controls">
+                    <div class="control-card">
+                        <h4>V1: Suma Básica</h4>
+                        <p style="color: #64748b; margin-bottom: 1rem; font-size: 0.9rem;">
+                            15 + 25 = ?
+                        </p>
+                        <button class="btn-test btn-v1" onclick="testV1Suma()">
+                            🧮 Probar V1 Suma
+                        </button>
+                    </div>
+
+                    <div class="control-card">
+                        <h4>V2: Raíz Cuadrada</h4>
+                        <p style="color: #64748b; margin-bottom: 1rem; font-size: 0.9rem;">
+                            √25 = ?
+                        </p>
+                        <button class="btn-test btn-v2" onclick="testV2Raiz()">
+                            🔬 Probar V2 Raíz
+                        </button>
+                    </div>
+
+                    <div class="control-card">
+                        <h4>V2: Potencia</h4>
+                        <p style="color: #64748b; margin-bottom: 1rem; font-size: 0.9rem;">
+                            2^10 = ?
+                        </p>
+                        <button class="btn-test btn-v2" onclick="testV2Potencia()">
+                            🔬 Probar V2 Potencia
+                        </button>
+                    </div>
+                </div>
+
+                <div class="result-area" id="result">
+                    <p style="color: #94a3b8; text-align: center; padding: 2rem;">
+                        Haz clic en cualquier botón para probar el versionado de API
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="../index.html" class="btn-home">⬅️ Volver al Panel Principal</a>
+        </div>
+    </div>
+
+    <script>
+        async function testV1Suma() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p style="color: #f59e0b; text-align: center; padding: 2rem;">⏳ Realizando petición...</p>';
+
+            try {
+                const response = await fetch('http://localhost:8080/versioned/suma?a=15&b=25', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Version': 'v1'
+                    }
+                });
+
+                const data = await response.json();
+
+                resultDiv.innerHTML = `
+                    <div style="color: #3b82f6; font-size: 1.5rem; margin-bottom: 1rem;">
+                        ✅ V1 - Operación Básica
+                    </div>
+                    <div style="background: #dbeafe; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <div style="font-size: 2rem; color: #1e40af; text-align: center;">
+                            15 + 25 = ${data.resultado}
+                        </div>
+                    </div>
+                    <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>Header enviado:</strong> <code style="color: #10b981;">X-API-Version: v1</code><br>
+                        <strong>Endpoint:</strong> <code style="color: #10b981;">/versioned/suma</code>
+                    </div>
+                    <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 10px;">
+                        <strong>Respuesta JSON:</strong>
+                        <pre style="margin-top: 0.5rem;">${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div style="color: #ef4444; font-size: 1.25rem; margin-bottom: 1rem;">
+                        ❌ Error en la petición
+                    </div>
+                    <div style="color: #64748b;">
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testV2Raiz() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p style="color: #f59e0b; text-align: center; padding: 2rem;">⏳ Realizando petición...</p>';
+
+            try {
+                const response = await fetch('http://localhost:8080/versioned/raiz?n=25', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Version': 'v2'
+                    }
+                });
+
+                const data = await response.json();
+
+                resultDiv.innerHTML = `
+                    <div style="color: #8b5cf6; font-size: 1.5rem; margin-bottom: 1rem;">
+                        ✅ V2 - Operación Científica
+                    </div>
+                    <div style="background: #ede9fe; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <div style="font-size: 2rem; color: #6b21a8; text-align: center;">
+                            √25 = ${data.resultado}
+                        </div>
+                    </div>
+                    <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>Header enviado:</strong> <code style="color: #a78bfa;">X-API-Version: v2</code><br>
+                        <strong>Endpoint:</strong> <code style="color: #a78bfa;">/versioned/raiz</code>
+                    </div>
+                    <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 10px;">
+                        <strong>Respuesta JSON:</strong>
+                        <pre style="margin-top: 0.5rem;">${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #f0fdf4; color: #166534; border-radius: 8px;">
+                        🎉 <strong>¡Esta operación solo existe en V2!</strong> Los clientes de V1 no tienen acceso a ella.
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div style="color: #ef4444; font-size: 1.25rem; margin-bottom: 1rem;">
+                        ❌ Error en la petición
+                    </div>
+                    <div style="color: #64748b;">
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testV2Potencia() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p style="color: #f59e0b; text-align: center; padding: 2rem;">⏳ Realizando petición...</p>';
+
+            try {
+                const response = await fetch('http://localhost:8080/versioned/potencia?base=2&exponente=10', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Version': 'v2'
+                    }
+                });
+
+                const data = await response.json();
+
+                resultDiv.innerHTML = `
+                    <div style="color: #8b5cf6; font-size: 1.5rem; margin-bottom: 1rem;">
+                        ✅ V2 - Operación Científica
+                    </div>
+                    <div style="background: #ede9fe; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <div style="font-size: 2rem; color: #6b21a8; text-align: center;">
+                            2^10 = ${data.resultado}
+                        </div>
+                    </div>
+                    <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>Header enviado:</strong> <code style="color: #a78bfa;">X-API-Version: v2</code><br>
+                        <strong>Endpoint:</strong> <code style="color: #a78bfa;">/versioned/potencia</code><br>
+                        <strong>Parámetros:</strong> <code style="color: #a78bfa;">base=2&exponente=10</code>
+                    </div>
+                    <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 10px;">
+                        <strong>Respuesta JSON:</strong>
+                        <pre style="margin-top: 0.5rem;">${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #fef3c7; color: #92400e; border-radius: 8px;">
+                        💡 <strong>Ventaja del versionado:</strong> Puedes añadir nuevas operaciones como esta sin afectar a los clientes que usan V1.
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div style="color: #ef4444; font-size: 1.25rem; margin-bottom: 1rem;">
+                        ❌ Error en la petición
+                    </div>
+                    <div style="color: #64748b;">
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

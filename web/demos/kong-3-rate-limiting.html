@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo: Rate Limiting - Kong</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffeaa7 0%, #fd79a8 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .success-badge {
+            display: inline-block;
+            background: #10b981;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: #333;
+        }
+
+        .demo-section h2 {
+            color: #fd79a8;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #fd79a8;
+            padding-bottom: 0.5rem;
+        }
+
+        .limit-gauge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            padding: 2rem;
+            background: linear-gradient(to right, #d1fae5, #fef3c7, #fecaca);
+            border-radius: 15px;
+            margin: 2rem 0;
+        }
+
+        .gauge {
+            text-align: center;
+        }
+
+        .gauge-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: conic-gradient(#10b981 0deg, #10b981 216deg, #e5e7eb 216deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .gauge-inner {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .gauge-value {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #0f172a;
+        }
+
+        .gauge-label {
+            font-size: 1rem;
+            color: #64748b;
+        }
+
+        .request-visualizer {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: #f1f5f9;
+            border-radius: 15px;
+        }
+
+        .request-bubble {
+            aspect-ratio: 1;
+            background: #e2e8f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            border: 3px dashed #cbd5e1;
+            transition: all 0.5s;
+        }
+
+        .request-bubble.allowed {
+            background: #10b981;
+            border-color: #059669;
+            color: white;
+            animation: pop 0.5s;
+        }
+
+        .request-bubble.blocked {
+            background: #ef4444;
+            border-color: #dc2626;
+            color: white;
+            animation: shake 0.5s;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-wrapper label {
+            color: #0c4a6e;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-wrapper input {
+            padding: 0.75rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .btn-send {
+            background: #fd79a8;
+            color: white;
+            border: none;
+            padding: 1.25rem 3rem;
+            font-size: 1.25rem;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .btn-send:hover {
+            background: #e35d8f;
+            transform: translateY(-2px);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="success-badge">¡EJERCICIO COMPLETADO!</div>
+            <h1>⏱️ Rate Limiting Plugin</h1>
+            <p style="font-size: 1.25rem; margin-top: 1rem; opacity: 0.9;">
+                Has configurado límites de tráfico para el microservicio de multiplicación con Kong
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h2>¿Qué acabas de hacer?</h2>
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+                Has activado el <strong>plugin Rate Limiting</strong> que limita las peticiones al microservicio de multiplicación a
+                <span style="background: rgba(253, 121, 168, 0.3); padding: 0.2rem 0.5rem; border-radius: 5px; font-weight: bold;">
+                5 por minuto</span>. Protege tu API de abuso y sobrecarga.
+            </p>
+
+            <div class="limit-gauge">
+                <div class="gauge">
+                    <div class="gauge-circle" id="gauge">
+                        <div class="gauge-inner">
+                            <div class="gauge-value" id="gauge-value">5</div>
+                            <div class="gauge-label">disponibles</div>
+                        </div>
+                    </div>
+                    <p style="color: #0f172a; margin-top: 1rem; font-size: 1.1rem;">Límite: 5 req/min</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Visualizador de Peticiones - Multiplicación</h2>
+            <p style="color: #64748b; margin-bottom: 1rem;">
+                Ingresa números y envía peticiones. Cada círculo representa una petición:
+            </p>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <label>Número A:</label>
+                    <input type="number" id="numA" value="7" />
+                </div>
+                <div class="input-wrapper">
+                    <label>Número B:</label>
+                    <input type="number" id="numB" value="8" />
+                </div>
+            </div>
+
+            <div class="request-visualizer" id="bubbles">
+                <div class="request-bubble">1</div>
+                <div class="request-bubble">2</div>
+                <div class="request-bubble">3</div>
+                <div class="request-bubble">4</div>
+                <div class="request-bubble">5</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="total">0</div>
+                    <div>Total Enviadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="allowed">0</div>
+                    <div>Permitidas ✅</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="blocked">0</div>
+                    <div>Bloqueadas 🚫</div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn-send" onclick="sendRequest()">
+                    📤 Calcular Multiplicación
+                </button>
+                <button class="btn-send" style="background: #64748b;" onclick="resetDemo()">
+                    🔄 Resetear
+                </button>
+            </div>
+
+            <div style="margin-top: 2rem; padding: 1.5rem; background: #f1f5f9; border-radius: 10px;">
+                <p style="color: #0f172a; font-size: 1.1rem; text-align: center;" id="status">
+                    Haz clic para enviar peticiones y ver el rate limiting en acción
+                </p>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="../index.html" style="background: #10b981; color: white; padding: 1rem 2rem; text-decoration: none; border-radius: 10px; display: inline-block;">
+                ⬅️ Volver al Panel Principal
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let totalCount = 0;
+        let allowedCount = 0;
+        let blockedCount = 0;
+
+        async function sendRequest() {
+            if (totalCount >= 10) {
+                alert('Demo limitada a 10 peticiones. Resetea para continuar.');
+                return;
+            }
+
+            const numA = document.getElementById('numA').value;
+            const numB = document.getElementById('numB').value;
+
+            totalCount++;
+            const bubbleIndex = totalCount <= 5 ? totalCount - 1 : null;
+
+            document.getElementById('total').textContent = totalCount;
+            document.getElementById('status').innerHTML = '<span style="color: #f59e0b;">⏳ Enviando petición...</span>';
+
+            try {
+                const response = await fetch(`http://localhost:8000/calc/multiplica?a=${numA}&b=${numB}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.status === 429) {
+                    blockedCount++;
+                    document.getElementById('blocked').textContent = blockedCount;
+                    document.getElementById('status').innerHTML = `
+                        <span style="color: #dc2626; font-size: 1.2rem;">
+                            🚫 Petición #${totalCount} BLOQUEADA - Rate limit excedido
+                        </span>
+                    `;
+                } else if (response.ok) {
+                    const data = await response.json();
+                    allowedCount++;
+                    document.getElementById('allowed').textContent = allowedCount;
+
+                    // Extract rate limiting headers (Kong format)
+                    const rateLimitHeaders = {
+                        'X-RateLimit-Limit-Minute': response.headers.get('X-RateLimit-Limit-Minute') || response.headers.get('x-ratelimit-limit-minute') || response.headers.get('RateLimit-Limit') || 'No disponible',
+                        'X-RateLimit-Remaining-Minute': response.headers.get('X-RateLimit-Remaining-Minute') || response.headers.get('x-ratelimit-remaining-minute') || response.headers.get('RateLimit-Remaining') || 'No disponible',
+                        'X-RateLimit-Reset': response.headers.get('X-RateLimit-Reset') || response.headers.get('x-ratelimit-reset') || response.headers.get('RateLimit-Reset') || 'No disponible'
+                    };
+
+                    if (bubbleIndex !== null) {
+                        const bubbles = document.querySelectorAll('.request-bubble');
+                        bubbles[bubbleIndex].classList.add('allowed');
+                        bubbles[bubbleIndex].textContent = '✓';
+                    }
+
+                    const remaining = 5 - allowedCount;
+                    document.getElementById('gauge-value').textContent = remaining;
+                    document.getElementById('status').innerHTML = `
+                        <div>
+                            <span style="color: #10b981; font-size: 1.2rem; display: block; margin-bottom: 0.75rem;">
+                                ✅ Petición #${totalCount} PERMITIDA | ${remaining} restantes
+                            </span>
+                            <div style="background: #e0e7ff; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 2px solid #6366f1;">
+                                <h4 style="color: #3730a3; margin-bottom: 0.75rem;">📊 Cabeceras de Rate Limiting:</h4>
+                                <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 6px; font-family: monospace; font-size: 0.9rem;">
+                                    <div style="margin-bottom: 0.5rem;"><span style="color: #a5b4fc;">X-RateLimit-Limit-Minute:</span> <span style="color: #10b981; font-weight: bold;">${rateLimitHeaders['X-RateLimit-Limit-Minute']}</span></div>
+                                    <div style="margin-bottom: 0.5rem;"><span style="color: #a5b4fc;">X-RateLimit-Remaining-Minute:</span> <span style="color: #10b981; font-weight: bold;">${rateLimitHeaders['X-RateLimit-Remaining-Minute']}</span></div>
+                                    <div><span style="color: #a5b4fc;">X-RateLimit-Reset:</span> <span style="color: #10b981; font-weight: bold;">${rateLimitHeaders['X-RateLimit-Reset']}</span></div>
+                                </div>
+                            </div>
+                            <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.9rem; overflow-x: auto;">
+                                <h4 style="color: #e2e8f0; margin-bottom: 0.5rem;">Respuesta:</h4>
+                                <pre style="margin: 0;">${JSON.stringify(data, null, 2)}</pre>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('status').innerHTML = `<span style="color: #64748b;">Error: ${error.message}</span>`;
+            }
+        }
+
+        async function resetDemo() {
+            try {
+                const response = await fetch('http://localhost:8001/services/ratelimit-service/plugins');
+                const result = await response.json();
+                const rateLimitPlugin = result.data.find(p => p.name === 'rate-limiting');
+
+                if (rateLimitPlugin) {
+                    await fetch(`http://localhost:8001/plugins/${rateLimitPlugin.id}`, { method: 'DELETE' });
+                    await new Promise(resolve => setTimeout(resolve, 300));
+
+                    await fetch('http://localhost:8001/services/ratelimit-service/plugins', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
+                            'name': 'rate-limiting',
+                            'config.minute': '5',
+                            'config.policy': 'local'
+                        })
+                    });
+                }
+            } catch (error) {
+                console.error('Error reseteando rate limit:', error);
+            }
+
+            totalCount = 0;
+            allowedCount = 0;
+            blockedCount = 0;
+
+            document.getElementById('total').textContent = '0';
+            document.getElementById('allowed').textContent = '0';
+            document.getElementById('blocked').textContent = '0';
+            document.getElementById('gauge-value').textContent = '5';
+
+            const bubbles = document.querySelectorAll('.request-bubble');
+            bubbles.forEach((bubble, i) => {
+                bubble.classList.remove('allowed', 'blocked');
+                bubble.textContent = i + 1;
+            });
+
+            document.getElementById('status').textContent = 'Haz clic para enviar peticiones y ver el rate limiting en acción';
+        }
+    </script>
+</body>
+</html>

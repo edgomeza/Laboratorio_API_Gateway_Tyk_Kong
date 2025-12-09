@@ -1,0 +1,39 @@
+{
+  "name": "Transform API - Calculadora",
+  "slug": "transform-api",
+  "api_id": "transform-api",
+  "org_id": "1",
+  "use_keyless": true,
+  "version_data": {
+    "not_versioned": true,
+    "default_version": "Default",
+    "versions": {
+      "Default": {
+        "name": "Default",
+        "use_extended_paths": true,
+        "extended_paths": {
+          "transform_headers": [
+            {
+              "delete_headers": [],
+              "add_headers": {
+                "X-Gateway": "Tyk",
+                "X-Processed-By": "API-Gateway",
+                "X-Service": "resta",
+                "X-Request-Time": "$tyk_context.request_data.timestamp"
+              },
+              "path": "",
+              "method": "GET"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "proxy": {
+    "listen_path": "/calc/resta",
+    "target_url": "http://calc-resta:8080/resta/calculadora/resta",
+    "strip_listen_path": true
+  },
+  "active": true,
+  "enable_context_vars": true
+}

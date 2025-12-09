@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo: Proxy Básico - Tyk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .success-badge {
+            display: inline-block;
+            background: #10b981;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: #333;
+        }
+
+        .demo-section h2 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            gap: 1rem;
+            padding: 2rem;
+            background: linear-gradient(to right, #f8fafc, #e0e7ff);
+            border-radius: 15px;
+            margin: 2rem 0;
+        }
+
+        .flow-box {
+            flex: 1;
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .flow-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .flow-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .flow-arrow {
+            font-size: 3rem;
+            color: #667eea;
+            animation: slideRight 1.5s infinite;
+        }
+
+        @keyframes slideRight {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(10px); }
+        }
+
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .comparison-box {
+            padding: 1.5rem;
+            border-radius: 15px;
+        }
+
+        .before {
+            background: #fee2e2;
+            border: 3px solid #ef4444;
+        }
+
+        .after {
+            background: #d1fae5;
+            border: 3px solid #10b981;
+        }
+
+        .comparison-box h3 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .before h3 { color: #dc2626; }
+        .after h3 { color: #059669; }
+
+        .highlight {
+            background: rgba(245, 158, 11, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .use-cases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .use-case {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .use-case-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .interactive-demo {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-wrapper label {
+            color: #0c4a6e;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-wrapper input {
+            padding: 0.75rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .btn-test {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.25rem;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-test:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        .result-area {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 10px;
+            min-height: 100px;
+            border: 2px dashed #cbd5e1;
+        }
+
+        .btn-home {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="success-badge">¡EJERCICIO COMPLETADO!</div>
+            <h1>Proxy Básico con Tyk</h1>
+            <p style="font-size: 1.25rem; margin-top: 1rem; opacity: 0.9;">
+                Has configurado tu primer API Gateway para microservicios de calculadora
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h2>¿Qué acabas de hacer?</h2>
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+                Has creado un <span class="highlight">Proxy Reverso</span> que actúa como intermediario entre tus clientes
+                y tus microservicios de calculadora. Esto es fundamental en arquitecturas modernas.
+            </p>
+
+            <div class="flow-diagram">
+                <div class="flow-box">
+                    <div class="flow-icon">👤</div>
+                    <h3>Cliente</h3>
+                    <p>Hace petición a:<br><code>/calc/suma?a=15&b=25</code></p>
+                </div>
+
+                <div class="flow-arrow">→</div>
+
+                <div class="flow-box" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                    <div class="flow-icon">🛡️</div>
+                    <h3>TYK Gateway</h3>
+                    <p><strong>Puerto 8080</strong></p>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem;">Intercepta y enruta</p>
+                </div>
+
+                <div class="flow-arrow">→</div>
+
+                <div class="flow-box">
+                    <div class="flow-icon">🖥️</div>
+                    <h3>Microservicio Suma</h3>
+                    <p>Calcula: 15 + 25<br><code>Puerto 3001</code></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Antes vs Después</h2>
+            <div class="before-after">
+                <div class="comparison-box before">
+                    <h3>❌ SIN API Gateway</h3>
+                    <ul style="line-height: 2; margin-left: 1.5rem; margin-top: 1rem;">
+                        <li>Expones cada microservicio directamente</li>
+                        <li>Sin capa de seguridad</li>
+                        <li>Sin control centralizado</li>
+                        <li>Difícil de escalar</li>
+                        <li>Microservicios visibles al mundo</li>
+                    </ul>
+                </div>
+                <div class="comparison-box after">
+                    <h3>✅ CON API Gateway</h3>
+                    <ul style="line-height: 2; margin-left: 1.5rem; margin-top: 1rem;">
+                        <li>Microservicios protegidos y ocultos</li>
+                        <li>Punto único de entrada</li>
+                        <li>Control centralizado</li>
+                        <li>Fácil de escalar</li>
+                        <li>Preparado para seguridad</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Casos de Uso Reales</h2>
+            <div class="use-cases">
+                <div class="use-case">
+                    <div class="use-case-icon">🏢</div>
+                    <h3>Microservicios</h3>
+                    <p>Centraliza el acceso a múltiples servicios internos</p>
+                </div>
+                <div class="use-case">
+                    <div class="use-case-icon">📱</div>
+                    <h3>Apps Móviles</h3>
+                    <p>Una sola URL para todas las APIs de tu app</p>
+                </div>
+                <div class="use-case">
+                    <div class="use-case-icon">🌐</div>
+                    <h3>APIs Públicas</h3>
+                    <p>Expón servicios de forma controlada y segura</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Prueba en Vivo</h2>
+            <div class="interactive-demo">
+                <h3 style="color: #0ea5e9; margin-bottom: 1rem;">Calcula la suma a través del Gateway</h3>
+                <p style="color: #475569; margin-bottom: 1.5rem;">
+                    Ingresa dos números para enviar una petición al microservicio de suma a través de Tyk:
+                </p>
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <label>Número A:</label>
+                        <input type="number" id="numA" value="15" />
+                    </div>
+                    <div class="input-wrapper">
+                        <label>Número B:</label>
+                        <input type="number" id="numB" value="25" />
+                    </div>
+                </div>
+                <button class="btn-test" onclick="testProxy()">
+                    🚀 Calcular Suma
+                </button>
+                <div class="result-area" id="result">
+                    <p style="color: #94a3b8; text-align: center; padding: 2rem;">
+                        Haz clic en el botón para ver el resultado
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="../index.html" class="btn-home">⬅️ Volver al Panel Principal</a>
+        </div>
+    </div>
+
+    <script>
+        async function testProxy() {
+            const resultDiv = document.getElementById('result');
+            const numA = document.getElementById('numA').value;
+            const numB = document.getElementById('numB').value;
+
+            resultDiv.innerHTML = '<p style="color: #f59e0b; text-align: center; padding: 2rem;">⏳ Realizando petición...</p>';
+
+            const startTime = Date.now();
+
+            try {
+                const response = await fetch(`http://localhost:8080/calc/suma?a=${numA}&b=${numB}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                const data = await response.json();
+
+                resultDiv.innerHTML = `
+                    <div style="color: #10b981; font-size: 1.5rem; margin-bottom: 1rem;">
+                        ✅ ¡Cálculo exitoso!
+                    </div>
+                    <div style="color: #64748b; margin-bottom: 1rem;">
+                        <strong>Estado HTTP:</strong> ${response.status} ${response.statusText}<br>
+                        <strong>Tiempo de respuesta:</strong> ${duration}ms<br>
+                        <strong>A través de:</strong> Tyk Gateway (Puerto 8080) → Microservicio Suma (Puerto 3001)
+                    </div>
+                    <div style="background: #e0e7ff; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <div style="font-size: 2rem; color: #667eea; text-align: center; margin-bottom: 0.5rem;">
+                            ${numA} + ${numB} = ${data.resultado}
+                        </div>
+                    </div>
+                    <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 10px; text-align: left;">
+                        <strong>Respuesta JSON:</strong>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #dbeafe; color: #1e40af; border-radius: 8px;">
+                        🎉 <strong>¡El proxy está funcionando!</strong> Tu petición pasó por el Gateway correctamente.
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div style="color: #ef4444; font-size: 1.25rem; margin-bottom: 1rem;">
+                        ❌ Error en la petición
+                    </div>
+                    <div style="color: #64748b;">
+                        ${error.message}
+                    </div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #fee2e2; color: #991b1b; border-radius: 8px;">
+                        ⚠️ Asegúrate de que Tyk y el microservicio de suma estén corriendo
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

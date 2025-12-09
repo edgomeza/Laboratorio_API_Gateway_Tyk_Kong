@@ -1,0 +1,67 @@
+{
+  "default": {
+    "id": "default",
+    "name": "Default Policy",
+    "org_id": "1",
+    "rate": 100,
+    "per": 60,
+    "quota_max": 10000,
+    "quota_renewal_rate": 3600,
+    "access_rights": {
+      "1": {
+        "api_name": "Base API",
+        "api_id": "1",
+        "versions": [
+          "Default"
+        ]
+      }
+    },
+    "active": true,
+    "state": "active"
+  },
+  "premium": {
+    "id": "premium",
+    "name": "Premium Policy",
+    "org_id": "1",
+    "rate": 1000,
+    "per": 60,
+    "quota_max": 100000,
+    "quota_renewal_rate": 3600,
+    "access_rights": {
+      "1": {
+        "api_name": "Base API",
+        "api_id": "1",
+        "versions": [
+          "Default"
+        ]
+      }
+    },
+    "active": true,
+    "state": "active"
+  },
+  "calc-rate-limit": {
+    "id": "calc-rate-limit",
+    "name": "Calculator Rate Limit Policy",
+    "org_id": "default",
+    "rate": 5,
+    "per": 60,
+    "quota_max": -1,
+    "quota_renewal_rate": 60,
+    "access_rights": {
+      "calc-multiplica-api": {
+        "api_name": "Calculator Multiplica API",
+        "api_id": "calc-multiplica-api",
+        "versions": [
+          "Default"
+        ],
+        "allowed_urls": [],
+        "limit": {
+          "rate": 5,
+          "per": 60
+        }
+      }
+    },
+    "active": true,
+    "state": "active"
+  }
+}

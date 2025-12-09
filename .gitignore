@@ -1,0 +1,59 @@
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Docker
+.dockerignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+
+# Logs
+*.log
+logs/
+
+# API Keys (sensitive data)
+api-keys.txt
+api-key.txt
+**/api-key.txt
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Backups
+kong-backup-*/
+*.tar.gz
+*.zip
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Exercise markers (auto-generated)
+exercises/**/.activated
+
+# Tyk active apps (auto-generated)
+gateway-configs/tyk/apps-active/*
+!gateway-configs/tyk/apps-active/.gitkeep
+
+# Old files
+README_OLD.md
+backend-service/

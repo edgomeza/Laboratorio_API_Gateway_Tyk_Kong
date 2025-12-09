@@ -1,0 +1,35 @@
+// {
+//   "name": "Calculadora con Logging",
+//   "api_id": "calc-logged",
+//   "org_id": "default",
+//   "use_keyless": true,
+//   "enable_detailed_recording": true,
+//   "version_data": {
+//     "not_versioned": true,
+//     "default_version": "Default",
+//     "versions": {
+//       "Default": {
+//         "name": "Default",
+//         "use_extended_paths": true
+//       }
+//     }
+//   },
+//   "proxy": {
+//     "listen_path": "/logged/",
+//     "target_url": "http://calc-resta:8080/resta/calculadora/",
+//     "strip_listen_path": true
+//   },
+//   "CORS": {
+//     "enable": true,
+//     "allowed_origins": ["*"],
+//     "allowed_methods": ["GET", "POST", "OPTIONS"],
+//     "allowed_headers": ["Origin", "Accept", "Content-Type"],
+//     "exposed_headers": [],
+//     "allow_credentials": false,
+//     "max_age": 24,
+//     "options_passthrough": false,
+//     "debug": false
+//   },
+//   "active": true,
+//   "enable_context_vars": true
+// }

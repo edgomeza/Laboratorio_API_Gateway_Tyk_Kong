@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo: Proxy Básico - Kong</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .success-badge {
+            display: inline-block;
+            background: #10b981;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: #333;
+        }
+
+        .demo-section h2 {
+            color: #0072ff;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #0072ff;
+            padding-bottom: 0.5rem;
+        }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            gap: 1rem;
+            padding: 2rem;
+            background: linear-gradient(to right, #f0f9ff, #dbeafe);
+            border-radius: 15px;
+            margin: 2rem 0;
+        }
+
+        .flow-box {
+            flex: 1;
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .flow-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .flow-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .flow-arrow {
+            font-size: 3rem;
+            color: #0072ff;
+            animation: slideRight 1.5s infinite;
+        }
+
+        @keyframes slideRight {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(10px); }
+        }
+
+        .kong-architecture {
+            background: linear-gradient(to bottom, #dbeafe, #f0f9ff);
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+        }
+
+        .arch-row {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .arch-box {
+            flex: 1;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-wrapper label {
+            color: #0c4a6e;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-wrapper input {
+            padding: 0.75rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .btn-test {
+            background: #0072ff;
+            color: white;
+            border: none;
+            padding: 1.25rem 3rem;
+            font-size: 1.25rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-test:hover {
+            background: #0062e0;
+            transform: translateY(-2px);
+        }
+
+        .result-area {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="success-badge">¡EJERCICIO COMPLETADO!</div>
+            <h1>🦍 Proxy Básico con Kong</h1>
+            <p style="font-size: 1.25rem; margin-top: 1rem; opacity: 0.9;">
+                Has configurado tu primer Service y Route en Kong para la calculadora
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h2>¿Qué acabas de hacer?</h2>
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+                Has creado un <span style="background: rgba(0, 114, 255, 0.2); padding: 0.2rem 0.5rem; border-radius: 5px; font-weight: bold;">
+                Service</span> y un <span style="background: rgba(0, 114, 255, 0.2); padding: 0.2rem 0.5rem; border-radius: 5px; font-weight: bold;">
+                Route</span> en Kong. Esto establece la conexión entre tu API pública y el microservicio de suma.
+            </p>
+
+            <div class="kong-architecture">
+                <h3 style="color: #0c4a6e; margin-bottom: 1.5rem; text-align: center;">Arquitectura Kong</h3>
+
+                <div class="arch-row">
+                    <div class="arch-box" style="background: #dbeafe; border: 3px solid #0ea5e9;">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🌐</div>
+                        <h4 style="color: #0c4a6e;">ROUTE</h4>
+                        <p style="color: #075985; margin-top: 0.5rem;">
+                            Path: <code style="background: #1e293b; color: #fbbf24; padding: 0.2rem 0.5rem; border-radius: 3px;">/calc</code>
+                        </p>
+                        <p style="color: #075985; margin-top: 0.5rem; font-size: 0.9rem;">
+                            Define qué URLs se enrutan
+                        </p>
+                    </div>
+                    <div style="font-size: 2rem; color: #0072ff;">→</div>
+                    <div class="arch-box" style="background: #d1fae5; border: 3px solid #10b981;">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">⚙️</div>
+                        <h4 style="color: #065f46;">SERVICE</h4>
+                        <p style="color: #047857; margin-top: 0.5rem;">
+                            URL: <code style="background: #1e293b; color: #fbbf24; padding: 0.2rem 0.5rem; border-radius: 3px;">suma-service:3001</code>
+                        </p>
+                        <p style="color: #047857; margin-top: 0.5rem; font-size: 0.9rem;">
+                            Define dónde está el microservicio
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-box">
+                    <div class="flow-icon">👥</div>
+                    <h3>Cliente</h3>
+                    <p>Petición a:<br><code>/calc/suma?a=15&b=25</code></p>
+                </div>
+
+                <div class="flow-arrow">→</div>
+
+                <div class="flow-box" style="background: linear-gradient(135deg, #00c6ff, #0072ff); color: white;">
+                    <div class="flow-icon">🦍</div>
+                    <h3>Kong Gateway</h3>
+                    <p><strong>Puerto 8000</strong></p>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem;">Enruta según Route</p>
+                </div>
+
+                <div class="flow-arrow">→</div>
+
+                <div class="flow-box">
+                    <div class="flow-icon">🖥️</div>
+                    <h3>Microservicio Suma</h3>
+                    <p>Calcula: 15 + 25<br><code>Puerto 3001</code></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Prueba en Vivo</h2>
+            <p style="color: #64748b; margin-bottom: 1.5rem; text-align: center;">
+                Ingresa dos números para calcular su suma a través de Kong Gateway:
+            </p>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <label>Número A:</label>
+                    <input type="number" id="numA" value="15" />
+                </div>
+                <div class="input-wrapper">
+                    <label>Número B:</label>
+                    <input type="number" id="numB" value="25" />
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <button class="btn-test" onclick="testProxy()">
+                    🚀 Calcular Suma a través de Kong
+                </button>
+                <div class="result-area" id="result">
+                    <p style="color: #94a3b8; text-align: center; padding: 2rem;">
+                        Haz clic en el botón para enviar una petición
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>¿Por qué Service + Route?</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                <div style="background: #e0e7ff; padding: 1.5rem; border-radius: 10px; border: 2px solid #6366f1;">
+                    <h4 style="color: #3730a3; margin-bottom: 1rem;">🎯 Flexibilidad</h4>
+                    <p style="color: #4338ca;">
+                        Un Service puede tener múltiples Routes. Puedes tener /api, /v1/api, /v2/api
+                        apuntando al mismo microservicio.
+                    </p>
+                </div>
+                <div style="background: #fef3c7; padding: 1.5rem; border-radius: 10px; border: 2px solid #f59e0b;">
+                    <h4 style="color: #92400e; margin-bottom: 1rem;">🔧 Plugins</h4>
+                    <p style="color: #a16207;">
+                        Los plugins se aplican a nivel de Service o Route, dándote control granular
+                        sobre qué funcionalidades aplicar.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="../index.html" style="background: #10b981; color: white; padding: 1rem 2rem; text-decoration: none; border-radius: 10px; display: inline-block;">
+                ⬅️ Volver al Panel Principal
+            </a>
+        </div>
+    </div>
+
+    <script>
+        async function testProxy() {
+            const resultDiv = document.getElementById('result');
+            const numA = document.getElementById('numA').value;
+            const numB = document.getElementById('numB').value;
+
+            resultDiv.innerHTML = '<p style="color: #f59e0b; text-align: center; padding: 2rem;">⏳ Enviando petición...</p>';
+
+            const startTime = performance.now();
+
+            try {
+                const response = await fetch(`http://localhost:8000/calc/suma?a=${numA}&b=${numB}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
+                const data = await response.json();
+
+                resultDiv.innerHTML = `
+                    <div style="color: #10b981; font-size: 1.5rem; margin-bottom: 1rem; text-align: center;">
+                        ✅ ¡Petición exitosa!
+                    </div>
+                    <div style="color: #64748b; margin-bottom: 1rem;">
+                        <strong>Estado:</strong> ${response.status} ${response.statusText}<br>
+                        <strong>Tiempo:</strong> ${duration}ms<br>
+                        <strong>Ruta:</strong> Cliente → Kong (8000) → Microservicio Suma (3001)
+                    </div>
+                    <div style="background: #e0e7ff; padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <div style="font-size: 2rem; color: #0072ff; text-align: center; margin-bottom: 0.5rem;">
+                            ${numA} + ${numB} = ${data.resultado}
+                        </div>
+                    </div>
+                    <div style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 10px; text-align: left;">
+                        <strong>Respuesta:</strong>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #dbeafe; color: #0c4a6e; border-radius: 8px;">
+                        🎉 Kong Gateway procesó tu petición correctamente
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div style="color: #ef4444; text-align: center;">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
